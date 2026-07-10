@@ -141,6 +141,6 @@ return new class extends Migration
         DB::statement('create index if not exists idx_report_runs_report_created on report_runs (report_catalog_id, created_at desc) where deleted_at is null');
         DB::statement('create index if not exists idx_audit_logs_event_created on audit_logs (event, created_at desc) where deleted_at is null');
         DB::statement('create index if not exists idx_audit_logs_subject on audit_logs (auditable_type, auditable_id, created_at desc) where deleted_at is null');
-        DB::statement('create index if not exists idx_user_login_history_email_created on user_login_history (email, created_at desc) where deleted_at is null');
+        DB::statement('create index if not exists idx_user_login_history_email_created on user_login_histories (email, created_at desc) where deleted_at is null');
     }
 };
