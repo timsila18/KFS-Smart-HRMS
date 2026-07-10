@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 48 33% 98%;
+        --foreground: 156 22% 12%;
+        --card: 0 0% 100%;
+        --card-foreground: 156 22% 12%;
+        --primary: 150 58% 24%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 42 48% 92%;
+        --secondary-foreground: 150 42% 18%;
+        --muted: 45 28% 94%;
+        --muted-foreground: 157 10% 38%;
+        --accent: 42 78% 50%;
+        --accent-foreground: 156 22% 12%;
+        --destructive: 0 70% 45%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 45 20% 84%;
+        --input: 45 20% 84%;
+        --ring: 150 58% 24%;
+        --radius: 0.5rem;
+    }
+
+    .dark {
+        --background: 156 24% 9%;
+        --foreground: 50 24% 94%;
+        --card: 154 22% 12%;
+        --card-foreground: 50 24% 94%;
+        --primary: 143 45% 48%;
+        --primary-foreground: 154 24% 8%;
+        --secondary: 154 18% 18%;
+        --secondary-foreground: 50 24% 94%;
+        --muted: 154 18% 18%;
+        --muted-foreground: 47 10% 70%;
+        --accent: 43 78% 56%;
+        --accent-foreground: 154 24% 8%;
+        --destructive: 0 62% 50%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 154 14% 24%;
+        --input: 154 14% 24%;
+        --ring: 143 45% 48%;
+    }
+
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    .kfs-focus {
+        @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    }
+
+    .kfs-skip-link {
+        @apply kfs-focus fixed left-4 top-3 z-50 -translate-y-16 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition focus:translate-y-0;
+    }
+}

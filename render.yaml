@@ -1,0 +1,101 @@
+services:
+  - type: web
+    name: kfs-smart-hrms-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    plan: standard
+    autoDeploy: true
+    disk:
+      name: kfs-smart-hrms-storage
+      mountPath: /var/www/html/storage
+      sizeGB: 10
+    envVars:
+      - key: APP_NAME
+        value: KFS Smart HRMS
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: REDIS_URL
+        sync: false
+      - key: CACHE_STORE
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: SESSION_ENCRYPT
+        value: true
+      - key: MAIL_MAILER
+        value: log
+
+  - type: worker
+    name: kfs-smart-hrms-queue
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: php artisan queue:work redis --queue=default,audit,reports --tries=3 --backoff=5 --max-time=3600
+    plan: standard
+    autoDeploy: true
+    envVars:
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: APP_NAME
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: APP_ENV
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: APP_KEY
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: DB_URL
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: REDIS_URL
+
+  - type: worker
+    name: kfs-smart-hrms-scheduler
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: php artisan schedule:work
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: APP_NAME
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: APP_ENV
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: APP_KEY
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: DB_URL
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
+          envVarKey: REDIS_URL
