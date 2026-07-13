@@ -6,6 +6,7 @@ use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Repositories\Eloquent\EmployeeRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -18,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (app()->isProduction()) {
+            URL::forceScheme('https');
+        }
+
         Gate::policy(\App\Models\Employee::class, \App\Policies\EmployeePolicy::class);
         Gate::policy(\App\Models\PayCode::class, \App\Policies\PayCodePolicy::class);
         Gate::policy(\App\Models\PayrollInstitution::class, \App\Policies\PayrollInstitutionPolicy::class);
