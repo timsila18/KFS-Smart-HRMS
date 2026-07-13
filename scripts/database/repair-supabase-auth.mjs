@@ -11,9 +11,9 @@ if (missing.length > 0) {
 }
 
 const accounts = [
-  ['hr.admin@kfs.go.ke', 'KfsAdmin@2026'],
-  ['hr.manager@kfs.go.ke', 'KfsManager@2026'],
-  ['payroll.operator@kfs.go.ke', 'KfsPayroll@2026'],
+  ['hr.admin@kfs.go.ke', 'KfsAdmin@2026', 'hr-admin'],
+  ['hr.manager@kfs.go.ke', 'KfsManager@2026', 'hr-manager'],
+  ['payroll.operator@kfs.go.ke', 'KfsPayroll@2026', 'hr-payroll-operator'],
 ];
 
 const client = new Client({
@@ -54,13 +54,38 @@ try {
     ]);
   }
 
+  for (const [email, , roleName] of accounts) {
+    const user = await client.query('select id from users where email = $1', [email]);
+    const role = await client.query('select id from roles where name = $1 and guard_name = $2', [
+      roleName,
+      'web',
+    ]);
+
+    if (user.rowCount === 0 || role.rowCount === 0) {
+      throw new Error(`Cannot assign role ${roleName} to ${email}; missing user or role.`);
+    }
+
+    await client.query(
+      'delete from model_has_roles where model_type = $1 and model_id = $2 and role_id = $3',
+      ['App\\Models\\User', user.rows[0].id, role.rows[0].id],
+    );
+
+    await client.query(
+      'insert into model_has_roles (role_id, model_type, model_id, station_id) values ($1, $2, $3, null)',
+      [role.rows[0].id, 'App\\Models\\User', user.rows[0].id],
+    );
+  }
+
   await client.query('commit');
 
   const { rows } = await client.query(
-    `select email, left(password, 4) as password_prefix
+    `select users.email, left(users.password, 4) as password_prefix, roles.name as role
      from users
-     where email = any($1::text[])
-     order by email`,
+     left join model_has_roles on model_has_roles.model_id = users.id
+      and model_has_roles.model_type = 'App\\Models\\User'
+     left join roles on roles.id = model_has_roles.role_id
+     where users.email = any($1::text[])
+     order by users.email`,
     [accounts.map(([email]) => email)],
   );
 
