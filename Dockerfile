@@ -25,7 +25,9 @@ RUN apk add --no-cache \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install dom gd intl mbstring opcache pcntl pdo_pgsql simplexml xml xmlreader xmlwriter zip \
     && addgroup -g 1000 kfs \
-    && adduser -D -G kfs -u 1000 kfs
+    && adduser -D -G kfs -u 1000 kfs \
+    && sed -i 's/^user = www-data/user = kfs/' /usr/local/etc/php-fpm.d/www.conf \
+    && sed -i 's/^group = www-data/group = kfs/' /usr/local/etc/php-fpm.d/www.conf
 
 COPY --chown=kfs:kfs . .
 COPY --from=vendor --chown=kfs:kfs /app/vendor ./vendor
