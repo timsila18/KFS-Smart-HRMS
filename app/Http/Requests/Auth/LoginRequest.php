@@ -18,6 +18,14 @@ class LoginRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'email' => Str::lower((string) $this->input('email')),
+            'remember' => filter_var($this->input('remember', false), FILTER_VALIDATE_BOOLEAN),
+        ]);
+    }
+
     public function rules(): array
     {
         return [
