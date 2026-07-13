@@ -22,9 +22,15 @@ class AppServiceProvider extends ServiceProvider
     {
         $appUrl = (string) config('app.url');
         $renderUrl = (string) env('RENDER_EXTERNAL_URL', '');
+        $requestHost = $this->app->bound('request') ? request()->getHost() : '';
+        $isRenderHost = Str::endsWith($requestHost, '.onrender.com');
 
-        if (app()->isProduction() || Str::startsWith($appUrl, 'https://') || Str::startsWith($renderUrl, 'https://')) {
+        if (app()->isProduction() || $isRenderHost || Str::startsWith($appUrl, 'https://') || Str::startsWith($renderUrl, 'https://')) {
             URL::forceScheme('https');
+
+            if ($isRenderHost) {
+                URL::forceRootUrl('https://'.$requestHost);
+            }
         }
 
         Gate::policy(\App\Models\Employee::class, \App\Policies\EmployeePolicy::class);
