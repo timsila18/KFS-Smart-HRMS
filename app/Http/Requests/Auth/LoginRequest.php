@@ -98,7 +98,10 @@ class LoginRequest extends FormRequest
 
     private function hasAllowedRole(User $user): bool
     {
-        $allowedRoles = config('kfs-auth.allowed_login_roles', []);
+        $allowedRoles = array_values(array_unique(array_merge(
+            config('kfs-auth.allowed_login_roles', []),
+            ['hr-admin', 'hr-manager', 'hr-payroll-operator'],
+        )));
 
         return empty($allowedRoles) || $user->hasAnyRole($allowedRoles);
     }
