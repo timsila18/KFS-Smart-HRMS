@@ -31,6 +31,8 @@ services:
         value: require
       - key: REDIS_URL
         sync: false
+      - key: REDIS_CLIENT
+        value: phpredis
       - key: CACHE_STORE
         value: redis
       - key: QUEUE_CONNECTION
@@ -41,6 +43,10 @@ services:
         value: true
       - key: MAIL_MAILER
         value: log
+      - key: KFS_AUTH_SESSION_TIMEOUT_MINUTES
+        value: 30
+      - key: PAYROLL_NSSF_MONTHLY_AMOUNT
+        value: 1080.000000000000000000
 
   - type: worker
     name: kfs-smart-hrms-queue
@@ -65,11 +71,27 @@ services:
       - fromService:
           type: web
           name: kfs-smart-hrms-web
+          envVarKey: APP_URL
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
           envVarKey: DB_URL
       - fromService:
           type: web
           name: kfs-smart-hrms-web
+          envVarKey: DB_SSLMODE
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
           envVarKey: REDIS_URL
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: CACHE_STORE
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
 
   - type: worker
     name: kfs-smart-hrms-scheduler
@@ -94,8 +116,24 @@ services:
       - fromService:
           type: web
           name: kfs-smart-hrms-web
+          envVarKey: APP_URL
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
           envVarKey: DB_URL
       - fromService:
           type: web
           name: kfs-smart-hrms-web
+          envVarKey: DB_SSLMODE
+      - fromService:
+          type: web
+          name: kfs-smart-hrms-web
           envVarKey: REDIS_URL
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: CACHE_STORE
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
