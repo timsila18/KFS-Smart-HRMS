@@ -7,9 +7,9 @@ mkdir -p storage/framework/cache storage/framework/sessions storage/framework/vi
 chown -R kfs:kfs storage bootstrap/cache
 
 if [ "${APP_ENV:-production}" = "production" ]; then
-    su kfs -c "php artisan config:cache"
-    su kfs -c "php artisan route:cache"
-    su kfs -c "php artisan view:cache"
+    su kfs -c "php artisan config:cache" || true
+    su kfs -c "php artisan route:cache" || true
+    su kfs -c "php artisan view:cache" || true
 fi
 
 exec /usr/bin/supervisord -c /etc/supervisord.conf

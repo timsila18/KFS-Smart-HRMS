@@ -12,7 +12,6 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -46,7 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->report(function (Throwable $exception): void {
+        $exceptions->report(function (\Throwable $exception): void {
             Log::error($exception->getMessage(), [
                 'exception' => $exception::class,
                 'file' => $exception->getFile(),
@@ -54,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ]);
         });
 
-        $exceptions->render(function (Throwable $exception, Request $request) {
+        $exceptions->render(function (\Throwable $exception, Request $request) {
             if (! $request->expectsJson() && ! $request->is('api/*')) {
                 return null;
             }
