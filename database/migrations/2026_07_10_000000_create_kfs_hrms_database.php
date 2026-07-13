@@ -148,8 +148,10 @@ return new class extends Migration
                 'index' => [['last_activity']],
             ],
             'roles' => [
-                'columns' => [['string', 'name', 125, ['nullable' => false]], ['string', 'guard_name', 80, ['nullable' => false, 'default' => 'web']], ['string', 'scope', 80], ['text', 'description'], ['boolean', 'is_system', null, ['nullable' => false, 'default' => false]]],
+                'columns' => [['foreignId', 'station_id'], ['string', 'name', 125, ['nullable' => false]], ['string', 'guard_name', 80, ['nullable' => false, 'default' => 'web']], ['string', 'scope', 80], ['text', 'description'], ['boolean', 'is_system', null, ['nullable' => false, 'default' => false]]],
+                'foreign' => [['station_id', 'id', 'stations']],
                 'unique' => [['name', 'guard_name']],
+                'index' => [['station_id']],
             ],
             'permissions' => [
                 'columns' => [['string', 'name', 160, ['nullable' => false]], ['string', 'guard_name', 80, ['nullable' => false, 'default' => 'web']], ['string', 'module', 80, ['nullable' => false]], ['text', 'description']],

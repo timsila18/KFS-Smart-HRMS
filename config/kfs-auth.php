@@ -5,10 +5,13 @@ return [
     'two_factor_enabled' => (bool) env('KFS_AUTH_TWO_FACTOR_ENABLED', false),
     'allowed_login_roles' => array_filter(array_map('trim', explode(',', env(
         'KFS_AUTH_ALLOWED_LOGIN_ROLES',
-        'super-admin,hr-director,hr-officer,payroll-manager,station-manager,employee'
+        'super-admin,hr-admin,hr-manager,hr-payroll-operator,hr-director,hr-officer,payroll-manager,station-manager,employee'
     )))),
     'post_login_routes' => [
         'super-admin' => 'dashboard',
+        'hr-admin' => 'dashboard',
+        'hr-manager' => 'dashboard',
+        'hr-payroll-operator' => 'dashboard',
         'hr-director' => 'dashboard',
         'hr-officer' => 'dashboard',
         'payroll-manager' => 'dashboard',

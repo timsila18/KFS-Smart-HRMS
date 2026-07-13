@@ -238,6 +238,9 @@ function migrationSql() {
   addColumn(sql, 'users', 'two_factor_recovery_codes', 'jsonb null');
   addColumn(sql, 'users', 'two_factor_enabled', 'boolean not null default false');
   addColumn(sql, 'users', 'two_factor_confirmed_at', 'timestamptz null');
+  addColumn(sql, 'roles', 'station_id', 'bigint null');
+  addFk(sql, 'roles', 'station_id', 'stations');
+  addIndex(sql, 'roles', ['station_id']);
   addColumn(sql, 'employees', 'photo_path', 'varchar(500) null');
   addColumn(sql, 'report_catalogs', 'is_schedulable', 'boolean not null default false');
   addColumn(sql, 'report_catalogs', 'schedule_frequency', 'varchar(40) null');
@@ -628,7 +631,8 @@ async function seed(client) {
     ['HR Payroll Operator', 'payroll.operator@kfs.go.ke', 'KfsPayroll@2026', 'hr-payroll-operator'],
   ];
   for (const [name, email, password, role] of accounts) {
-    await upsert(client, 'users', ['email'], { name, email, password: bcrypt.hashSync(password, 10), status: 'active', email_verified_at: now() });
+    const hash = '$2y$' + bcrypt.hashSync(password, 10).slice(4);
+    await upsert(client, 'users', ['email'], { name, email, password: hash, status: 'active', email_verified_at: now() });
     const userId = await value(client, 'select id from users where email = $1', [email]);
     await upsert(client, 'model_has_roles', ['role_id', 'model_type', 'model_id', 'station_id'], { role_id: roleByName.get(role), model_type: 'App\\Models\\User', model_id: userId, station_id: null });
   }
