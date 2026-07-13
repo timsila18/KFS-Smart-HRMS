@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,7 +20,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if (app()->isProduction()) {
+        $appUrl = (string) config('app.url');
+        $renderUrl = (string) env('RENDER_EXTERNAL_URL', '');
+
+        if (app()->isProduction() || Str::startsWith($appUrl, 'https://') || Str::startsWith($renderUrl, 'https://')) {
             URL::forceScheme('https');
         }
 
