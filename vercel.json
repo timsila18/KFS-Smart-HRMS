@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "buildCommand": "composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts --optimize-autoloader && npm install && npm run build && php artisan package:discover --ansi",
-  "functions": {
-    "api/index.php": {
-      "runtime": "vercel-php@0.7.3",
-      "memory": 1024,
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "api/index.php",
+      "use": "vercel-php@0.7.3"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "public"
+      }
     }
-  },
+  ],
   "routes": [
     {
       "src": "/build/(.*)",
