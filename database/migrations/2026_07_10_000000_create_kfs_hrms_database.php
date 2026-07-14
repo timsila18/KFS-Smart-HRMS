@@ -165,9 +165,10 @@ return new class extends Migration
                 'index' => [['model_type', 'model_id']],
             ],
             'model_has_permissions' => [
-                'columns' => [['foreignId', 'permission_id'], ['string', 'model_type', 190, ['nullable' => false]], ['bigInteger', 'model_id', null, ['nullable' => false]]],
-                'foreign' => [['permission_id', 'id', 'permissions']],
-                'unique' => [['permission_id', 'model_type', 'model_id']],
+                'columns' => [['foreignId', 'permission_id'], ['string', 'model_type', 190, ['nullable' => false]], ['bigInteger', 'model_id', null, ['nullable' => false]], ['foreignId', 'station_id']],
+                'foreign' => [['permission_id', 'id', 'permissions'], ['station_id', 'id', 'stations']],
+                'unique' => [['permission_id', 'model_type', 'model_id', 'station_id']],
+                'index' => [['model_type', 'model_id'], ['station_id']],
             ],
             'role_has_permissions' => [
                 'columns' => [['foreignId', 'permission_id'], ['foreignId', 'role_id']],

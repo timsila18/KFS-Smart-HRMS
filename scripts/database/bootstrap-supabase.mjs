@@ -241,6 +241,9 @@ function migrationSql() {
   addColumn(sql, 'roles', 'station_id', 'bigint null');
   addFk(sql, 'roles', 'station_id', 'stations');
   addIndex(sql, 'roles', ['station_id']);
+  addColumn(sql, 'model_has_permissions', 'station_id', 'bigint null');
+  addFk(sql, 'model_has_permissions', 'station_id', 'stations');
+  addIndex(sql, 'model_has_permissions', ['station_id']);
   addColumn(sql, 'employees', 'photo_path', 'varchar(500) null');
   addColumn(sql, 'report_catalogs', 'is_schedulable', 'boolean not null default false');
   addColumn(sql, 'report_catalogs', 'schedule_frequency', 'varchar(40) null');

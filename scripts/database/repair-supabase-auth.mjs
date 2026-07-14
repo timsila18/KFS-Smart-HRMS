@@ -31,15 +31,30 @@ try {
   await client.query('begin');
 
   await client.query('alter table roles add column if not exists station_id bigint null');
+  await client.query('alter table model_has_permissions add column if not exists station_id bigint null');
   await client.query('create index if not exists idx_roles_station_id on roles (station_id)');
+  await client.query(
+    'create index if not exists idx_model_has_permissions_station_id on model_has_permissions (station_id)',
+  );
 
-  const constraint = await client.query('select 1 from pg_constraint where conname = $1', [
+  const roleConstraint = await client.query('select 1 from pg_constraint where conname = $1', [
     'roles_station_id_fk',
   ]);
 
-  if (constraint.rowCount === 0) {
+  if (roleConstraint.rowCount === 0) {
     await client.query(
       'alter table roles add constraint roles_station_id_fk foreign key (station_id) references stations(id) on delete set null',
+    );
+  }
+
+  const modelPermissionConstraint = await client.query(
+    'select 1 from pg_constraint where conname = $1',
+    ['model_has_permissions_station_id_fk'],
+  );
+
+  if (modelPermissionConstraint.rowCount === 0) {
+    await client.query(
+      'alter table model_has_permissions add constraint model_has_permissions_station_id_fk foreign key (station_id) references stations(id) on delete set null',
     );
   }
 
