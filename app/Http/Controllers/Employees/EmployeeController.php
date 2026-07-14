@@ -20,7 +20,6 @@ use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Services\Auth\ActivityLogger;
 use App\Services\Employees\EmployeeRegisterService;
 use App\Support\SimplePdf;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -164,21 +163,4 @@ class EmployeeController extends Controller
         ];
     }
 
-    private function pdfOptions(): array
-    {
-        $base = env('APP_RUNNING_ON_VERCEL') ? '/tmp/kfs-smart-hrms/dompdf' : storage_path('app/dompdf');
-
-        foreach ([$base, "{$base}/fonts", "{$base}/temp"] as $directory) {
-            if (! is_dir($directory)) {
-                @mkdir($directory, 0775, true);
-            }
-        }
-
-        return [
-            'tempDir' => "{$base}/temp",
-            'fontDir' => "{$base}/fonts",
-            'fontCache' => "{$base}/fonts",
-            'isRemoteEnabled' => false,
-        ];
-    }
 }

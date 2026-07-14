@@ -9,7 +9,6 @@ use App\Models\ReportCatalog;
 use App\Models\ReportRun;
 use App\Services\Reports\ReportDataService;
 use App\Support\SimplePdf;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -120,21 +119,4 @@ class ReportController extends Controller
         };
     }
 
-    private function pdfOptions(): array
-    {
-        $base = env('APP_RUNNING_ON_VERCEL') ? '/tmp/kfs-smart-hrms/dompdf' : storage_path('app/dompdf');
-
-        foreach ([$base, "{$base}/fonts", "{$base}/temp"] as $directory) {
-            if (! is_dir($directory)) {
-                @mkdir($directory, 0775, true);
-            }
-        }
-
-        return [
-            'tempDir' => "{$base}/temp",
-            'fontDir' => "{$base}/fonts",
-            'fontCache' => "{$base}/fonts",
-            'isRemoteEnabled' => false,
-        ];
-    }
 }
