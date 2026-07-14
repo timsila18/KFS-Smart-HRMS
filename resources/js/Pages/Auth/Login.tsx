@@ -51,7 +51,7 @@ export default function Login({ status }: { canResetPassword: boolean; status?: 
                     Remember this device
                 </label>
 
-                <Button className="w-full" disabled={processing}>
+                <Button type="submit" className="w-full" disabled={processing}>
                     {processing ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                     Sign in
                 </Button>

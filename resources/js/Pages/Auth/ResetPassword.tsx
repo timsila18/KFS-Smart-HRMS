@@ -33,7 +33,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                     <Input id="password_confirmation" type="password" value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)} />
                     <FormError message={errors.password_confirmation} />
                 </div>
-                <Button className="w-full" disabled={processing}>
+                <Button type="submit" className="w-full" disabled={processing}>
                     <KeyRound className="h-4 w-4" />
                     Reset password
                 </Button>

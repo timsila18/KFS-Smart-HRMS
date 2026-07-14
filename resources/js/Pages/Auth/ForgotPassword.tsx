@@ -19,7 +19,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     <Input id="email" type="email" value={data.email} autoFocus onChange={(e) => setData('email', e.target.value)} />
                     <FormError message={errors.email} />
                 </div>
-                <Button className="w-full" disabled={processing}>
+                <Button type="submit" className="w-full" disabled={processing}>
                     <Mail className="h-4 w-4" />
                     Send reset link
                 </Button>

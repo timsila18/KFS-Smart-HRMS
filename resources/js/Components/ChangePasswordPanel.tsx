@@ -51,7 +51,7 @@ export function ChangePasswordPanel() {
                     <FormError message={errors.password_confirmation} />
                 </div>
                 <div className="md:col-span-3 flex items-center gap-3">
-                    <Button disabled={processing}>Save password</Button>
+                    <Button type="submit" disabled={processing}>Save password</Button>
                     {recentlySuccessful && <p className="text-sm text-primary">Password updated.</p>}
                 </div>
             </form>

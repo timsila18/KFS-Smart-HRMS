@@ -18,7 +18,7 @@ export default function TwoFactorChallenge() {
                     <Input id="code" value={data.code} autoComplete="one-time-code" onChange={(e) => setData('code', e.target.value)} />
                     <FormError message={errors.code} />
                 </div>
-                <Button className="w-full" disabled={processing}>
+                <Button type="submit" className="w-full" disabled={processing}>
                     <ShieldCheck className="h-4 w-4" />
                     Verify
                 </Button>
