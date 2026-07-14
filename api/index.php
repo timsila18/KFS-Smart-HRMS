@@ -23,4 +23,15 @@ putenv("APP_STORAGE_PATH={$tmp}");
 putenv("VIEW_COMPILED_PATH={$tmp}/framework/views");
 putenv("LOG_CHANNEL=stderr");
 
-require __DIR__.'/../public/index.php';
+require __DIR__.'/../vendor/autoload.php';
+
+/** @var \Illuminate\Foundation\Application $app */
+$app = require __DIR__.'/../bootstrap/app.php';
+
+try {
+    $app->handleRequest(\Illuminate\Http\Request::capture());
+} catch (Throwable $exception) {
+    error_log('KFS_VERCEL_BOOT_EXCEPTION: '.$exception::class.' '.$exception->getMessage().' in '.$exception->getFile().':'.$exception->getLine());
+
+    throw $exception;
+}
