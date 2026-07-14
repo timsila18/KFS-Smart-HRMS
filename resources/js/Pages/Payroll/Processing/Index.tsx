@@ -34,7 +34,7 @@ export default function PayrollProcessingIndex({ runs, periods, payGroups }: { r
                         </form>
                     </Card>
 
-                    <Card className="p-5">
+                    <Card id="import-adjustments" className="p-5 scroll-mt-24">
                         <h2 className="text-lg font-semibold">Import Payroll Adjustments</h2>
                         <form onSubmit={(e) => { e.preventDefault(); importForm.post('/payroll/processing/adjustments/import', { forceFormData: true }); }} className="mt-4 grid gap-4 sm:grid-cols-2">
                             <Select label="Period" value={String(importForm.data.payroll_period_id)} options={periods.map((p) => ({ value: p.id, label: p.code }))} onChange={(v) => importForm.setData('payroll_period_id', v)} />

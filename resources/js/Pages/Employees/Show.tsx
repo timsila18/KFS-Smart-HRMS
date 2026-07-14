@@ -126,7 +126,7 @@ export default function EmployeeShow({ employee, auditLogs }: { employee: { data
                         <Section title="Photo Upload" icon={Camera}>
                             <form onSubmit={uploadPhoto} className="space-y-3">
                                 <Input type="file" accept="image/*" onChange={(e) => photoForm.setData('photo', e.target.files?.[0] ?? null)} />
-                                <Button disabled={photoForm.processing}>Upload photo</Button>
+                                <Button type="submit" disabled={photoForm.processing}>Upload photo</Button>
                             </form>
                         </Section>
 
@@ -154,7 +154,7 @@ export default function EmployeeShow({ employee, auditLogs }: { employee: { data
                             <form onSubmit={uploadAttachment} className="space-y-3">
                                 <Input value={attachmentForm.data.type} onChange={(e) => attachmentForm.setData('type', e.target.value)} />
                                 <Input type="file" onChange={(e) => attachmentForm.setData('file', e.target.files?.[0] ?? null)} />
-                                <Button disabled={attachmentForm.processing}>Upload attachment</Button>
+                                <Button type="submit" disabled={attachmentForm.processing}>Upload attachment</Button>
                             </form>
                             <div className="mt-4 space-y-2">
                                 {(item.attachments ?? []).map((attachment: any) => <p key={attachment.uuid} className="rounded-md border p-2 text-sm">{attachment.file_name}</p>)}

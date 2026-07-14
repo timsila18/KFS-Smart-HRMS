@@ -4,7 +4,11 @@ namespace App\Services\Ess;
 
 use App\Models\Employee;
 use App\Models\EssRequest;
+use App\Models\LeaveApproval;
+use App\Models\LeaveRequest;
+use App\Models\LeaveType;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -118,13 +122,22 @@ class EmployeeSelfService
         $employee = $this->employeeFor($user);
         abort_unless($employee, 422, 'No employee profile is linked to this account.');
 
-        return EssRequest::query()->create([
-            'employee_id' => $employee->id,
-            'request_type' => $data['request_type'],
-            'status' => 'submitted',
-            'payload' => $data['payload'] ?? [],
-            'remarks' => $data['remarks'] ?? null,
-        ]);
+        return DB::transaction(function () use ($employee, $data): EssRequest {
+            $requestType = $data['request_type'];
+            $payload = $data['payload'] ?? [];
+
+            if ($requestType === 'leave') {
+                $this->createLeaveRequest($employee, $payload, $data['remarks'] ?? null);
+            }
+
+            return EssRequest::query()->create([
+                'employee_id' => $employee->id,
+                'request_type' => $requestType,
+                'status' => 'submitted',
+                'payload' => $payload,
+                'remarks' => $data['remarks'] ?? null,
+            ]);
+        });
     }
 
     private function tableRows(User $user, string $table, array $columns): array
@@ -148,5 +161,56 @@ class EmployeeSelfService
             'hire_date' => $employee->hire_date?->toDateString(),
             'photo_url' => $employee->photo_path ? Storage::disk('public')->url($employee->photo_path) : null,
         ];
+    }
+
+    private function createLeaveRequest(Employee $employee, array $payload, ?string $remarks): LeaveRequest
+    {
+        $startDate = Carbon::parse($payload['start_date']);
+        $endDate = Carbon::parse($payload['end_date']);
+        $leaveType = LeaveType::query()->where('code', $payload['leave_type_code'] ?? 'ANNUAL')->firstOrFail();
+        $days = $payload['requested_days'] ?? $this->workingDays($startDate, $endDate);
+
+        $leaveRequest = LeaveRequest::query()->create([
+            'employee_id' => $employee->id,
+            'leave_type_id' => $leaveType->id,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
+            'requested_days' => $days,
+            'status' => 'submitted',
+            'reason' => $remarks ?: ($payload['reason'] ?? null),
+        ]);
+
+        LeaveApproval::query()->create([
+            'leave_request_id' => $leaveRequest->id,
+            'approver_id' => $this->singleApproverId(),
+            'approval_level' => 1,
+            'status' => 'pending',
+        ]);
+
+        return $leaveRequest;
+    }
+
+    private function workingDays(Carbon $startDate, Carbon $endDate): int
+    {
+        $days = 0;
+
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+            if (! $date->isWeekend()) {
+                $days++;
+            }
+        }
+
+        return max($days, 1);
+    }
+
+    private function singleApproverId(): int
+    {
+        $approver = User::role('hr-manager')->where('status', 'active')->first()
+            ?? User::role('hr-admin')->where('status', 'active')->first()
+            ?? User::query()->where('status', 'active')->first();
+
+        abort_unless($approver, 422, 'No leave approver has been configured.');
+
+        return $approver->id;
     }
 }

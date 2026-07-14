@@ -8,6 +8,7 @@ use App\Http\Requests\Reports\RunReportRequest;
 use App\Models\ReportCatalog;
 use App\Models\ReportRun;
 use App\Services\Reports\ReportDataService;
+use App\Support\SimplePdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
@@ -69,13 +70,9 @@ class ReportController extends Controller
         $this->recordRun($report, $request, 'completed', $format);
 
         if ($format === 'pdf') {
-            return Pdf::loadView('exports.report', [
-                'report' => $report,
-                'filters' => $request->filters(),
-                'columns' => $dataset['columns'],
-                'rows' => $dataset['rows'],
-                'generatedAt' => now(),
-            ])->setPaper('a4', 'landscape')->download($fileName.'.pdf');
+            return response(SimplePdf::table($report->name, $dataset['columns'], $dataset['rows']))
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename="'.$fileName.'.pdf"');
         }
 
         return new GenericReportExport($fileName.'.xlsx', $dataset['columns'], $dataset['rows']);
@@ -121,5 +118,23 @@ class ReportController extends Controller
             'quarter' => now()->addMonthsNoOverflow(3)->startOfQuarter(),
             default => null,
         };
+    }
+
+    private function pdfOptions(): array
+    {
+        $base = env('APP_RUNNING_ON_VERCEL') ? '/tmp/kfs-smart-hrms/dompdf' : storage_path('app/dompdf');
+
+        foreach ([$base, "{$base}/fonts", "{$base}/temp"] as $directory) {
+            if (! is_dir($directory)) {
+                @mkdir($directory, 0775, true);
+            }
+        }
+
+        return [
+            'tempDir' => "{$base}/temp",
+            'fontDir' => "{$base}/fonts",
+            'fontCache' => "{$base}/fonts",
+            'isRemoteEnabled' => false,
+        ];
     }
 }

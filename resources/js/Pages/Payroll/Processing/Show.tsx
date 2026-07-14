@@ -57,7 +57,7 @@ export default function PayrollRunShow({ run }: { run: { data: Run } }) {
                         <h2 className="text-lg font-semibold">Reverse Payroll</h2>
                         <form onSubmit={(e) => { e.preventDefault(); reverseForm.post(`/payroll/processing/${item.uuid}/reverse`); }} className="mt-4 space-y-3">
                             <div className="space-y-2"><Label>Reason</Label><Input value={reverseForm.data.reason} onChange={(e) => reverseForm.setData('reason', e.target.value)} /></div>
-                            <Button variant="danger" disabled={reverseForm.processing}><RotateCcw className="h-4 w-4" /> Reverse Payroll</Button>
+                            <Button type="submit" variant="danger" disabled={reverseForm.processing}><RotateCcw className="h-4 w-4" /> Reverse Payroll</Button>
                         </form>
                     </Card>
                 </section>

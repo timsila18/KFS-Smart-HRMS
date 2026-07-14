@@ -25,6 +25,7 @@ class PayrollProcessingController extends Controller
     public function index(): Response
     {
         $this->authorize('viewAny', PayrollRun::class);
+        $this->ensureOperationalPayrollSetup();
 
         return Inertia::render('Payroll/Processing/Index', [
             'runs' => PayrollRunResource::collection(PayrollRun::query()->with(['period', 'payGroup', 'outputFiles'])->latest()->paginate(12)),
@@ -97,5 +98,24 @@ class PayrollProcessingController extends Controller
         $this->payroll->generateOutputs($run, $request);
 
         return back()->with('status', 'Payroll outputs generated.');
+    }
+
+    private function ensureOperationalPayrollSetup(): void
+    {
+        PayGroup::query()->firstOrCreate(
+            ['code' => 'MONTHLY'],
+            ['name' => 'Monthly Payroll', 'frequency' => 'monthly']
+        );
+
+        $month = now();
+        PayrollPeriod::query()->firstOrCreate(
+            ['code' => $month->format('Y-m')],
+            [
+                'starts_on' => $month->copy()->startOfMonth()->toDateString(),
+                'ends_on' => $month->copy()->endOfMonth()->toDateString(),
+                'pay_date' => $month->copy()->endOfMonth()->toDateString(),
+                'status' => 'open',
+            ]
+        );
     }
 }

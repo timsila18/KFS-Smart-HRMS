@@ -31,6 +31,8 @@ class Employee extends Model
         'hire_date',
     ];
 
+    protected $appends = ['full_name'];
+
     protected function casts(): array
     {
         return [

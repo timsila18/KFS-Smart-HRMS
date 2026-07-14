@@ -3,13 +3,22 @@
 namespace App\Services\Employees;
 
 use App\Models\Attachment;
+use App\Models\BankBranch;
+use App\Models\Department;
 use App\Models\Employee;
+use App\Models\EmployeeBankAccount;
+use App\Models\JobPosition;
+use App\Models\Station;
 use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Services\Auth\ActivityLogger;
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class EmployeeRegisterService
 {
@@ -80,6 +89,58 @@ class EmployeeRegisterService
         });
     }
 
+    public function importSpreadsheet(UploadedFile $file, Request $request): array
+    {
+        $sheets = Excel::toCollection(null, $file);
+        $rows = $sheets->first() ?? collect();
+
+        if ($rows->isEmpty()) {
+            return ['created' => 0, 'updated' => 0, 'skipped' => 0];
+        }
+
+        $headers = collect($rows->shift())
+            ->map(fn ($header): string => Str::of((string) $header)->lower()->replace([' ', '-', '.'], '_')->squish()->toString())
+            ->all();
+
+        $created = 0;
+        $updated = 0;
+        $skipped = 0;
+
+        DB::transaction(function () use ($rows, $headers, $request, &$created, &$updated, &$skipped): void {
+            foreach ($rows as $row) {
+                $data = $this->normaliseImportRow(array_combine($headers, $row->all()) ?: []);
+
+                if (blank($data['employee_number']) || blank($data['first_name']) || blank($data['last_name'])) {
+                    $skipped++;
+                    continue;
+                }
+
+                $employee = Employee::query()->firstOrNew(['employee_number' => $data['employee_number']]);
+                $wasRecentlyCreated = ! $employee->exists;
+
+                $employee->fill([
+                    'first_name' => $data['first_name'],
+                    'middle_name' => $data['middle_name'],
+                    'last_name' => $data['last_name'],
+                    'gender' => $data['gender'],
+                    'date_of_birth' => $data['date_of_birth'],
+                    'hire_date' => $data['hire_date'],
+                    'employment_status' => $data['employment_status'] ?: 'active',
+                    'station_id' => $this->lookupId(Station::class, $data['station']),
+                    'department_id' => $this->lookupId(Department::class, $data['department']),
+                    'job_position_id' => $this->lookupId(JobPosition::class, $data['position'], 'title'),
+                ])->save();
+
+                $this->syncImportedBankAccount($employee, $data);
+                $this->activityLogger->record($request, $wasRecentlyCreated ? 'employee.imported' : 'employee.import_updated', $employee, [], $employee->only(['employee_number', 'first_name', 'last_name']));
+
+                $wasRecentlyCreated ? $created++ : $updated++;
+            }
+        });
+
+        return compact('created', 'updated', 'skipped');
+    }
+
     /**
      * @param array<string, mixed> $payload
      */
@@ -135,5 +196,79 @@ class EmployeeRegisterService
             ->isEmpty()
             ? []
             : $clean;
+    }
+
+    private function normaliseImportRow(array $row): array
+    {
+        $value = fn (array $keys): ?string => collect($keys)
+            ->map(fn (string $key) => $row[$key] ?? null)
+            ->first(fn ($item) => filled($item));
+
+        return [
+            'employee_number' => $value(['employee_number', 'payroll_number', 'payroll_no', 'staff_number', 'staff_no']),
+            'first_name' => $value(['first_name', 'firstname', 'given_name']),
+            'middle_name' => $value(['middle_name', 'middlename', 'other_name']),
+            'last_name' => $value(['last_name', 'lastname', 'surname']),
+            'gender' => $value(['gender', 'sex']),
+            'date_of_birth' => $this->importDate($value(['date_of_birth', 'dob'])),
+            'hire_date' => $this->importDate($value(['hire_date', 'employment_date', 'date_joined'])),
+            'employment_status' => Str::lower((string) ($value(['employment_status', 'status']) ?: 'active')),
+            'station' => $value(['station', 'station_code', 'station_name']),
+            'department' => $value(['department', 'department_code', 'directorate']),
+            'position' => $value(['position', 'job_position', 'designation', 'title']),
+            'bank_name' => $value(['bank_name', 'bank']),
+            'bank_code' => $value(['bank_code']),
+            'branch_name' => $value(['branch_name', 'branch']),
+            'branch_code' => $value(['branch_code', 'sort_code']),
+            'account_number' => $value(['account_number', 'bank_account', 'account_no']),
+        ];
+    }
+
+    private function importDate(mixed $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return ExcelDate::excelToDateTimeObject((float) $value)->format('Y-m-d');
+        }
+
+        return rescue(fn () => Carbon::parse((string) $value)->toDateString(), null, false);
+    }
+
+    private function lookupId(string $model, ?string $value, string $nameColumn = 'name'): ?int
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        return $model::query()
+            ->where('code', $value)
+            ->orWhere($nameColumn, $value)
+            ->value('id');
+    }
+
+    private function syncImportedBankAccount(Employee $employee, array $data): void
+    {
+        if (blank($data['account_number'])) {
+            return;
+        }
+
+        $branch = filled($data['branch_code'])
+            ? BankBranch::query()->where('branch_code', $data['branch_code'])->first()
+            : null;
+
+        EmployeeBankAccount::query()->updateOrCreate(
+            ['employee_id' => $employee->id, 'account_number' => $data['account_number']],
+            [
+                'bank_branch_id' => $branch?->id,
+                'bank_code' => $data['bank_code'] ?: $branch?->bank_code,
+                'bank_name' => $data['bank_name'] ?: $branch?->bank_name,
+                'branch_code' => $data['branch_code'] ?: $branch?->branch_code,
+                'branch_name' => $data['branch_name'] ?: $branch?->branch_name,
+                'is_primary' => true,
+            ]
+        );
     }
 }

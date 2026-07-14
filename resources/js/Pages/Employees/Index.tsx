@@ -1,5 +1,5 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { Download, Eye, FileText, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Download, Eye, FileText, FileUp, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
@@ -42,6 +42,7 @@ export default function EmployeeIndex({
         department_id: filters.department_id ?? '',
         job_position_id: filters.job_position_id ?? '',
     });
+    const importForm = useForm<{ file: File | null }>({ file: null });
 
     const applyFilters = (event: React.FormEvent) => {
         event.preventDefault();
@@ -76,7 +77,7 @@ export default function EmployeeIndex({
                     </div>
                 </section>
 
-                <Card className="p-5">
+                <Card id="bulk-import" className="p-5 scroll-mt-24">
                     <form onSubmit={applyFilters} className="grid gap-3 lg:grid-cols-[1.2fr_160px_1fr_1fr_1fr_auto]">
                         <div className="relative">
                             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -100,10 +101,34 @@ export default function EmployeeIndex({
                             <option value="">All positions</option>
                             {lookups.positions.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}
                         </select>
-                        <Button>
+                        <Button type="submit">
                             <SlidersHorizontal className="h-4 w-4" /> Filter
                         </Button>
                     </form>
+                </Card>
+
+                <Card className="p-5">
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+                        <div>
+                            <h2 className="font-semibold">Bulk Staff Import</h2>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Upload Excel or CSV with employee_number, first_name, last_name, station, department, position, bank_name, branch_code, and account_number.
+                            </p>
+                        </div>
+                        <form
+                            onSubmit={(event) => {
+                                event.preventDefault();
+                                importForm.post('/employees/import', { forceFormData: true, preserveScroll: true, onSuccess: () => importForm.reset() });
+                            }}
+                            className="grid gap-3 sm:grid-cols-[minmax(240px,1fr)_auto]"
+                        >
+                            <Input type="file" accept=".xlsx,.xls,.csv,.txt" onChange={(event) => importForm.setData('file', event.target.files?.[0] ?? null)} />
+                            <Button type="submit" disabled={importForm.processing || !importForm.data.file}>
+                                <FileUp className="h-4 w-4" /> Import Staff
+                            </Button>
+                        </form>
+                    </div>
+                    {importForm.errors.file && <p className="mt-2 text-sm text-destructive">{importForm.errors.file}</p>}
                 </Card>
 
                 <Card className="overflow-hidden">

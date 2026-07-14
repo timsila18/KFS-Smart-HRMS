@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Employees;
 use App\Exports\EmployeesExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Employees\EmployeeIndexRequest;
+use App\Http\Requests\Employees\ImportEmployeesRequest;
 use App\Http\Requests\Employees\StoreEmployeeAttachmentRequest;
 use App\Http\Requests\Employees\StoreEmployeeRequest;
 use App\Http\Requests\Employees\UpdateEmployeeRequest;
@@ -18,6 +19,7 @@ use App\Models\Station;
 use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Services\Auth\ActivityLogger;
 use App\Services\Employees\EmployeeRegisterService;
+use App\Support\SimplePdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -128,9 +130,29 @@ class EmployeeController extends Controller
         $this->authorize('export', Employee::class);
         $employees = $this->employees->query($request->validated())->limit(1000)->get();
 
-        return Pdf::loadView('exports.employees', ['employees' => $employees])
-            ->setPaper('a4', 'landscape')
-            ->download('kfs-employee-register.pdf');
+        $rows = $employees->map(fn (Employee $employee) => [
+            'employee_number' => $employee->employee_number,
+            'name' => $employee->full_name,
+            'status' => $employee->employment_status,
+            'station' => $employee->station?->name,
+            'department' => $employee->department?->name,
+            'position' => $employee->jobPosition?->title,
+            'hire_date' => $employee->hire_date?->toDateString(),
+        ])->all();
+
+        return response(SimplePdf::table('KFS Employee Register', ['employee_number', 'name', 'status', 'station', 'department', 'position', 'hire_date'], $rows))
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="kfs-employee-register.pdf"');
+    }
+
+    public function import(ImportEmployeesRequest $request): RedirectResponse
+    {
+        $summary = $this->service->importSpreadsheet($request->file('file'), $request);
+
+        return back()->with(
+            'status',
+            "Employee import completed. Created: {$summary['created']}, updated: {$summary['updated']}, skipped: {$summary['skipped']}."
+        );
     }
 
     private function lookups(): array
@@ -139,6 +161,24 @@ class EmployeeController extends Controller
             'stations' => Station::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'departments' => Department::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'positions' => JobPosition::query()->where('is_active', true)->orderBy('title')->get(['id', 'title']),
+        ];
+    }
+
+    private function pdfOptions(): array
+    {
+        $base = env('APP_RUNNING_ON_VERCEL') ? '/tmp/kfs-smart-hrms/dompdf' : storage_path('app/dompdf');
+
+        foreach ([$base, "{$base}/fonts", "{$base}/temp"] as $directory) {
+            if (! is_dir($directory)) {
+                @mkdir($directory, 0775, true);
+            }
+        }
+
+        return [
+            'tempDir' => "{$base}/temp",
+            'fontDir' => "{$base}/fonts",
+            'fontCache' => "{$base}/fonts",
+            'isRemoteEnabled' => false,
         ];
     }
 }

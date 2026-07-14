@@ -132,7 +132,7 @@ export default function EmployeeForm({
                         <Link href="/employees" className="inline-flex items-center gap-1 text-sm text-primary hover:underline"><ArrowLeft className="h-4 w-4" /> Employee Register</Link>
                         <h1 className="mt-2 text-2xl font-semibold">{mode === 'create' ? 'Register Employee' : 'Edit Employee'}</h1>
                     </div>
-                    <Button disabled={processing}><Save className="h-4 w-4" /> Save Employee</Button>
+                    <Button type="submit" disabled={processing}><Save className="h-4 w-4" /> Save Employee</Button>
                 </section>
 
                 <Card className="p-5">

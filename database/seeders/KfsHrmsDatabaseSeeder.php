@@ -108,6 +108,10 @@ class KfsHrmsDatabaseSeeder extends Seeder
             'hr-director' => $this->managerPermissions(),
             'payroll-manager' => $this->managerPermissions(),
             'hr-officer' => $this->supervisorPermissions(),
+            'employee' => $this->permissionsFor([
+                'ess' => ['view', 'create'],
+                'notifications' => ['view'],
+            ]),
         ];
 
         foreach ($profiles as $roleName => $permissionNames) {

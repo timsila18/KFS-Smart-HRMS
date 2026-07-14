@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employees\EmployeeController;
 use App\Http\Controllers\Ess\EmployeeSelfServiceController;
+use App\Http\Controllers\Leave\LeaveApprovalController;
 use App\Http\Controllers\Payroll\PayrollAdministrationController;
 use App\Http\Controllers\Payroll\PayrollProcessingController;
 use App\Http\Controllers\Reports\ReportController;
@@ -43,6 +44,9 @@ Route::middleware(['auth'])->group(function (): void {
     Route::post('/employees/{employee:uuid}/attachments', [EmployeeController::class, 'attach'])
         ->middleware('permission:employees.update')
         ->name('employees.attachments.store');
+    Route::post('/employees/import', [EmployeeController::class, 'import'])
+        ->middleware('permission:employees.create')
+        ->name('employees.import');
     Route::resource('/employees', EmployeeController::class)
         ->parameters(['employees' => 'employee']);
 
@@ -75,6 +79,21 @@ Route::middleware(['auth'])->group(function (): void {
             Route::post('/{run:uuid}/lock', [PayrollProcessingController::class, 'lock'])->middleware('permission:payroll.approve')->name('lock');
             Route::post('/{run:uuid}/reverse', [PayrollProcessingController::class, 'reverse'])->middleware('permission:payroll.approve')->name('reverse');
             Route::post('/{run:uuid}/outputs', [PayrollProcessingController::class, 'outputs'])->middleware('permission:payroll.update')->name('outputs');
+        });
+
+    Route::prefix('leave')
+        ->name('leave.')
+        ->middleware('permission:leave.view|ess.view')
+        ->group(function (): void {
+            Route::get('/approvals', [LeaveApprovalController::class, 'index'])
+                ->middleware('permission:leave.approve|ess.approve')
+                ->name('approvals.index');
+            Route::post('/approvals/{approval}/approve', [LeaveApprovalController::class, 'approve'])
+                ->middleware('permission:leave.approve|ess.approve')
+                ->name('approvals.approve');
+            Route::post('/approvals/{approval}/reject', [LeaveApprovalController::class, 'reject'])
+                ->middleware('permission:leave.approve|ess.approve')
+                ->name('approvals.reject');
         });
 
     Route::prefix('reports')

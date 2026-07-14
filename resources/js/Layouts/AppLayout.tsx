@@ -1,6 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
-import { CircleDollarSign, FileBarChart, KeyRound, LayoutDashboard, LogOut, UserRound, Users } from 'lucide-react';
+import { CalendarCheck, CircleDollarSign, FileBarChart, KeyRound, LayoutDashboard, LogOut, UserRound, Users } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
 import { ThemeToggle } from '@/Components/ThemeToggle';
@@ -10,12 +10,39 @@ export default function AppLayout({ children }: PropsWithChildren) {
     const { auth } = usePage<PageProps>().props;
     const { url } = usePage();
     const navItems = [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/employees', label: 'Employees', icon: Users },
-        { href: '/ess', label: 'ESS', icon: UserRound },
-        { href: '/payroll/administration', label: 'Payroll Admin', icon: CircleDollarSign },
-        { href: '/payroll/processing', label: 'Payroll Processing', icon: CircleDollarSign },
-        { href: '/reports', label: 'Reports', icon: FileBarChart },
+        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, children: [] },
+        { href: '/employees', label: 'Employees', icon: Users, children: [
+            { href: '/employees', label: 'Register' },
+            { href: '/employees/create', label: 'Add Staff' },
+            { href: '/employees#bulk-import', label: 'Excel Import' },
+        ] },
+        { href: '/ess', label: 'ESS', icon: UserRound, children: [
+            { href: '/ess/profile', label: 'Profile' },
+            { href: '/ess/requests', label: 'Apply Leave' },
+            { href: '/ess/payslips', label: 'Payslips' },
+            { href: '/ess/p9', label: 'P9' },
+            { href: '/ess/documents', label: 'Documents' },
+        ] },
+        { href: '/leave/approvals', label: 'Leave', icon: CalendarCheck, children: [
+            { href: '/leave/approvals', label: 'Approvals' },
+            { href: '/ess/requests', label: 'Apply Leave' },
+            { href: '/reports/LEAVE_REPORT', label: 'Leave Report' },
+        ] },
+        { href: '/payroll/administration', label: 'Payroll Admin', icon: CircleDollarSign, children: [
+            { href: '/payroll/administration', label: 'Earnings & Deductions' },
+            { href: '/payroll/administration#institutions', label: 'SACCOs & Loans' },
+        ] },
+        { href: '/payroll/processing', label: 'Payroll Processing', icon: CircleDollarSign, children: [
+            { href: '/payroll/processing', label: 'Open & Run Payroll' },
+            { href: '/payroll/processing#import-adjustments', label: 'Import Adjustments' },
+        ] },
+        { href: '/reports', label: 'Reports', icon: FileBarChart, children: [
+            { href: '/reports', label: 'Report Library' },
+            { href: '/reports/PAYROLL_REGISTER', label: 'Payroll Register' },
+            { href: '/reports/EMPLOYEE_REGISTER', label: 'Employee Register' },
+            { href: '/reports/BANK_SCHEDULE', label: 'Bank Schedule' },
+            { href: '/reports/P9', label: 'P9' },
+        ] },
     ];
 
     return (
@@ -64,17 +91,27 @@ export default function AppLayout({ children }: PropsWithChildren) {
                             const active = url === item.href || url.startsWith(`${item.href}/`);
 
                             return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    aria-current={active ? 'page' : undefined}
-                                    className={`kfs-focus flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary ${
-                                        active ? 'bg-secondary text-secondary-foreground' : ''
-                                    }`}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    {item.label}
-                                </Link>
+                                <div key={item.href} className="min-w-fit lg:min-w-0">
+                                    <Link
+                                        href={item.href}
+                                        aria-current={active ? 'page' : undefined}
+                                        className={`kfs-focus flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary ${
+                                            active ? 'bg-secondary text-secondary-foreground' : ''
+                                        }`}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        {item.label}
+                                    </Link>
+                                    {active && item.children.length > 0 && (
+                                        <div className="mt-1 hidden space-y-1 border-l border-border pl-4 lg:block">
+                                            {item.children.map((child) => (
+                                                <Link key={child.href} href={child.href} className="block rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground">
+                                                    {child.label}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             );
                         })}
                         <a href="#change-password" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary">

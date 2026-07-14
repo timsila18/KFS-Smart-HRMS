@@ -228,7 +228,7 @@ export default function PayrollAdministration({
                                     </label>
                                 ))}
                             </div>
-                            <Button disabled={componentForm.processing}><Save className="h-4 w-4" /> Save Component</Button>
+                            <Button type="submit" disabled={componentForm.processing}><Save className="h-4 w-4" /> Save Component</Button>
                         </form>
                     </Card>
 
@@ -265,7 +265,7 @@ export default function PayrollAdministration({
                 </section>
 
                 <section className="grid gap-6 xl:grid-cols-[420px_1fr]">
-                    <Card className="p-5">
+                    <Card id="institutions" className="p-5 scroll-mt-24">
                         <div className="mb-4 flex items-center gap-2">
                             <Building2 className="h-5 w-5 text-primary" />
                             <h2 className="text-lg font-semibold">{editingInstitution ? 'Edit Institution' : 'Create Institution'}</h2>
@@ -280,7 +280,7 @@ export default function PayrollAdministration({
                                 <Field label="Phone"><Input value={institutionForm.data.phone} onChange={(e) => institutionForm.setData('phone', e.target.value)} /></Field>
                                 <Field label="Email"><Input value={institutionForm.data.email} onChange={(e) => institutionForm.setData('email', e.target.value)} /></Field>
                             </div>
-                            <Button disabled={institutionForm.processing}><Save className="h-4 w-4" /> Save Institution</Button>
+                            <Button type="submit" disabled={institutionForm.processing}><Save className="h-4 w-4" /> Save Institution</Button>
                         </form>
                     </Card>
 
@@ -337,7 +337,7 @@ export default function PayrollAdministration({
                             </select>
                         </div>
                         <div className="flex items-end">
-                            <Button disabled={!productInstitution || productForm.processing}><Save className="h-4 w-4" /> Save Product</Button>
+                            <Button type="submit" disabled={!productInstitution || productForm.processing}><Save className="h-4 w-4" /> Save Product</Button>
                         </div>
                     </form>
                 </Card>
