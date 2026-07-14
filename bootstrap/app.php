@@ -54,6 +54,23 @@ $app = Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (\Throwable $exception, Request $request) {
+            if (env('APP_RUNNING_ON_VERCEL')) {
+                $status = method_exists($exception, 'getStatusCode')
+                    ? $exception->getStatusCode()
+                    : Response::HTTP_INTERNAL_SERVER_ERROR;
+
+                if ($status < 400 || $status >= 600) {
+                    $status = Response::HTTP_INTERNAL_SERVER_ERROR;
+                }
+
+                return response(
+                    app()->isProduction()
+                        ? 'KFS Smart HRMS request failed. Check Vercel logs for the exception details.'
+                        : $exception::class.': '.$exception->getMessage(),
+                    $status
+                )->header('Content-Type', 'text/plain; charset=UTF-8');
+            }
+
             if (! $request->expectsJson() && ! $request->is('api/*')) {
                 return null;
             }
