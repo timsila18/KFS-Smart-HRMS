@@ -223,7 +223,7 @@ class EmployeeRegisterService
             'date_of_birth' => $this->importDate($value(['date_of_birth', 'dob'])),
             'hire_date' => $this->importDate($value(['hire_date', 'employment_date', 'date_joined'])),
             'employment_status' => Str::lower((string) ($value(['employment_status', 'status']) ?: 'active')),
-            'station' => $value(['station', 'station_code', 'station_name']),
+            'station' => $value(['station_code', 'station', 'station_name']),
             'department' => $value(['department', 'department_code', 'directorate']),
             'position' => $value(['position', 'job_position', 'designation', 'title']),
             'email' => Str::lower((string) $value(['email', 'official_email', 'work_email', 'ess_email'])),

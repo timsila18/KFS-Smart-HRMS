@@ -8,7 +8,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { FormError } from '@/Components/FormError';
 
-type Lookup = { id: number; name?: string; title?: string };
+type Lookup = { id: number; name?: string; display_name?: string; title?: string };
 type EmployeePayload = {
     profile: Record<string, any>;
     ess: Record<string, any>;
@@ -166,7 +166,7 @@ export default function EmployeeForm({
                 <Card className="p-5">
                     <h2 className="mb-4 text-lg font-semibold">Employment Details</h2>
                     <div className="grid gap-4 md:grid-cols-3">
-                        <Field label="Station"><select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={data.profile.station_id} onChange={(e) => updateProfile('station_id', e.target.value)}><option value="">Select station</option>{lookups.stations.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></Field>
+                        <Field label="Station"><select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={data.profile.station_id} onChange={(e) => updateProfile('station_id', e.target.value)}><option value="">Select station</option>{lookups.stations.map((item) => <option key={item.id} value={item.id}>{item.display_name ?? item.name}</option>)}</select></Field>
                         <Field label="Department"><select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={data.profile.department_id} onChange={(e) => updateProfile('department_id', e.target.value)}><option value="">Select department</option>{lookups.departments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></Field>
                         <Field label="Job Position"><select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={data.profile.job_position_id} onChange={(e) => updateProfile('job_position_id', e.target.value)}><option value="">Select position</option>{lookups.positions.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></Field>
                     </div>

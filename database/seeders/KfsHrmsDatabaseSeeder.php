@@ -14,6 +14,7 @@ class KfsHrmsDatabaseSeeder extends Seeder
             $this->seedSettings();
             $this->seedAccessControl();
             $this->seedOrganization();
+            $this->call(KfsStationSeeder::class);
             $this->seedEmployment();
             $this->seedPayroll();
             $this->call(PayrollAdministrationSeeder::class);

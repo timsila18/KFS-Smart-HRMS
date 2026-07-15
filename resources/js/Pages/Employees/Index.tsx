@@ -24,7 +24,7 @@ type Paginated<T> = {
     meta?: Record<string, unknown>;
 };
 
-type Lookup = { id: number; name?: string; title?: string };
+type Lookup = { id: number; name?: string; display_name?: string; title?: string };
 
 export default function EmployeeIndex({
     employees,
@@ -91,7 +91,7 @@ export default function EmployeeIndex({
                         </select>
                         <select className="rounded-md border bg-background px-3 py-2 text-sm" value={form.station_id} onChange={(e) => setForm({ ...form, station_id: e.target.value })}>
                             <option value="">All stations</option>
-                            {lookups.stations.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                            {lookups.stations.map((item) => <option key={item.id} value={item.id}>{item.display_name ?? item.name}</option>)}
                         </select>
                         <select className="rounded-md border bg-background px-3 py-2 text-sm" value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value })}>
                             <option value="">All departments</option>
@@ -112,8 +112,11 @@ export default function EmployeeIndex({
                         <div>
                             <h2 className="font-semibold">Bulk Staff Import</h2>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                Upload Excel or CSV with employee_number, first_name, last_name, station, department, position, bank_name, branch_code, and account_number.
+                                Download the template, fill staff details, then upload it to create employee records, ESS accounts, station assignments, and bank details.
                             </p>
+                            <Button type="button" variant="secondary" className="mt-3" onClick={() => router.visit('/employees/import/template')}>
+                                <Download className="h-4 w-4" /> Download Onboarding Template
+                            </Button>
                         </div>
                         <form
                             onSubmit={(event) => {

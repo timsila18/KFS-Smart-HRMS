@@ -53,6 +53,9 @@ Route::middleware(['auth'])->group(function (): void {
     Route::post('/employees/import', [EmployeeController::class, 'import'])
         ->middleware('permission:employees.create')
         ->name('employees.import');
+    Route::get('/employees/import/template', [EmployeeController::class, 'importTemplate'])
+        ->middleware('permission:employees.create')
+        ->name('employees.import.template');
     Route::resource('/employees', EmployeeController::class)
         ->parameters(['employees' => 'employee']);
 
