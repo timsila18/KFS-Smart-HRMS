@@ -66,9 +66,39 @@ class EmployeeSelfServiceController extends Controller
         return Inertia::render('Ess/ListPage', ['title' => 'Documents', 'description' => 'Your employee documents.', 'rows' => $this->ess->documents($request->user())]);
     }
 
+    public function messages(Request $request): Response
+    {
+        return Inertia::render('Ess/ListPage', ['title' => 'Messages', 'description' => 'Messages from HR, payroll, and station administration.', 'rows' => $this->ess->messages($request->user())]);
+    }
+
     public function notifications(Request $request): Response
     {
         return Inertia::render('Ess/ListPage', ['title' => 'Notifications', 'description' => 'Messages and alerts from KFS Smart HRMS.', 'rows' => $this->ess->notifications($request->user())]);
+    }
+
+    public function serviceDocuments(Request $request): Response
+    {
+        return Inertia::render('Ess/ListPage', ['title' => 'Issued Documents', 'description' => 'Contracts, posting letters, appointment records, and other KFS service documents.', 'rows' => $this->ess->serviceDocuments($request->user())]);
+    }
+
+    public function notices(Request $request): Response
+    {
+        return Inertia::render('Ess/ListPage', ['title' => 'Service Policies', 'description' => 'KFS circulars, policies, HR notices, and shared service forms.', 'rows' => $this->ess->notices($request->user())]);
+    }
+
+    public function attendance(Request $request): Response
+    {
+        return Inertia::render('Ess/ListPage', ['title' => 'Duty Attendance', 'description' => 'Your captured duty attendance records for KFS service days.', 'rows' => $this->ess->attendance($request->user())]);
+    }
+
+    public function loansDeductions(Request $request): Response
+    {
+        return Inertia::render('Ess/ListPage', ['title' => 'Loans & Deductions', 'description' => 'Your statutory, SACCO, loan, welfare, and payroll deduction history.', 'rows' => $this->ess->loansAndDeductions($request->user())]);
+    }
+
+    public function settings(Request $request): Response
+    {
+        return Inertia::render('Ess/ListPage', ['title' => 'My Settings', 'description' => 'Your KFS Smart HRMS account access settings.', 'rows' => $this->ess->settings($request->user())]);
     }
 
     public function requests(Request $request): Response

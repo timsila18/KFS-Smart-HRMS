@@ -17,11 +17,17 @@ export default function AppLayout({ children }: PropsWithChildren) {
             { href: '/employees#bulk-import', label: 'Excel Import' },
         ] },
         { href: '/ess', label: 'ESS', icon: UserRound, children: [
+            { href: '/ess', label: 'My Dashboard' },
             { href: '/ess/profile', label: 'Profile' },
             { href: '/ess/requests', label: 'Apply Leave' },
             { href: '/ess/payslips', label: 'Payslips' },
             { href: '/ess/p9', label: 'P9' },
             { href: '/ess/documents', label: 'Documents' },
+            { href: '/ess/messages', label: 'Messages' },
+            { href: '/ess/attendance', label: 'Duty Attendance' },
+            { href: '/ess/service-documents', label: 'Issued Documents' },
+            { href: '/ess/notices', label: 'Service Policies' },
+            { href: '/ess/loans-deductions', label: 'Loans & Deductions' },
         ] },
         { href: '/leave/approvals', label: 'Leave', icon: CalendarCheck, children: [
             { href: '/leave/approvals', label: 'Approvals' },

@@ -27,7 +27,13 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/payroll-history', [EmployeeSelfServiceController::class, 'payrollHistory'])->name('payroll-history');
         Route::get('/contracts', [EmployeeSelfServiceController::class, 'contracts'])->name('contracts');
         Route::get('/documents', [EmployeeSelfServiceController::class, 'documents'])->name('documents');
+        Route::get('/messages', [EmployeeSelfServiceController::class, 'messages'])->name('messages');
         Route::get('/notifications', [EmployeeSelfServiceController::class, 'notifications'])->name('notifications');
+        Route::get('/service-documents', [EmployeeSelfServiceController::class, 'serviceDocuments'])->name('service-documents');
+        Route::get('/notices', [EmployeeSelfServiceController::class, 'notices'])->name('notices');
+        Route::get('/attendance', [EmployeeSelfServiceController::class, 'attendance'])->name('attendance');
+        Route::get('/loans-deductions', [EmployeeSelfServiceController::class, 'loansDeductions'])->name('loans-deductions');
+        Route::get('/settings', [EmployeeSelfServiceController::class, 'settings'])->name('settings');
         Route::get('/requests', [EmployeeSelfServiceController::class, 'requests'])->name('requests');
         Route::post('/requests', [EmployeeSelfServiceController::class, 'storeRequest'])->middleware('permission:ess.create|ess.view')->name('requests.store');
     });
