@@ -19,9 +19,8 @@
 </head>
 <body>
 @php
-    $employee = $leave->employee;
-    $approval = $leave->approvals->sortByDesc('acted_at')->first() ?? $leave->approvals->first();
-    $resumeDate = $leave->end_date?->copy()?->addDay();
+    $form = $form ?? [];
+    $value = fn (string $key, string $fallback = '-') => $form[$key] ?? $fallback;
 @endphp
 <div class="header">
     <img class="logo" src="{{ public_path('images/kfs-logo.png') }}" alt="Kenya Forest Service logo">
@@ -33,35 +32,35 @@
 <h2>Employee Details</h2>
 <table>
     <tr>
-        <th style="width: 22%;">Name</th><td>{{ $employee?->full_name }}</td>
-        <th style="width: 20%;">Staff No.</th><td>{{ $employee?->employee_number }}</td>
+        <th style="width: 22%;">Name</th><td>{{ $value('employee_name') }}</td>
+        <th style="width: 20%;">Staff No.</th><td>{{ $value('employee_number') }}</td>
     </tr>
     <tr>
-        <th>Station / Conservancy</th><td>{{ $employee?->station?->name ?? 'Not captured' }}</td>
-        <th>Department</th><td>{{ $employee?->department?->name ?? 'Not captured' }}</td>
+        <th>Station / Conservancy</th><td>{{ $value('station', 'Not captured') }}</td>
+        <th>Department</th><td>{{ $value('department', 'Not captured') }}</td>
     </tr>
     <tr>
-        <th>Designation</th><td>{{ $employee?->jobPosition?->title ?? 'Not captured' }}</td>
-        <th>Terms of Service</th><td>{{ str($employee?->employment_status ?? 'active')->headline() }}</td>
+        <th>Designation</th><td>{{ $value('designation', 'Not captured') }}</td>
+        <th>Terms of Service</th><td>{{ $value('terms') }}</td>
     </tr>
 </table>
 
 <h2>Leave Details</h2>
 <table>
     <tr>
-        <th style="width: 22%;">Type of Leave</th><td>{{ $leave->leaveType?->name ?? 'Leave' }}</td>
-        <th style="width: 20%;">Days Applied</th><td>{{ number_format((float) $leave->requested_days, 2) }}</td>
+        <th style="width: 22%;">Type of Leave</th><td>{{ $value('leave_type', 'Leave') }}</td>
+        <th style="width: 20%;">Days Applied</th><td>{{ $value('requested_days', '0.00') }}</td>
     </tr>
     <tr>
-        <th>Start Date</th><td>{{ $leave->start_date?->format('d/m/Y') }}</td>
-        <th>End Date</th><td>{{ $leave->end_date?->format('d/m/Y') }}</td>
+        <th>Start Date</th><td>{{ $value('start_date') }}</td>
+        <th>End Date</th><td>{{ $value('end_date') }}</td>
     </tr>
     <tr>
-        <th>Expected Resume Date</th><td>{{ $resumeDate?->format('d/m/Y') }}</td>
-        <th>Status</th><td>{{ str($leave->status)->headline() }}</td>
+        <th>Expected Resume Date</th><td>{{ $value('resume_date') }}</td>
+        <th>Status</th><td>{{ $value('status') }}</td>
     </tr>
     <tr>
-        <th>Reason / Remarks</th><td colspan="3">{{ $leave->reason ?: '-' }}</td>
+        <th>Reason / Remarks</th><td colspan="3">{{ $value('reason') }}</td>
     </tr>
 </table>
 
@@ -69,12 +68,12 @@
 <table>
     <tr>
         @foreach (['Annual Leave', 'Sick Leave', 'Maternity Leave', 'Paternity Leave'] as $type)
-            <td><span class="checkbox">{{ $leave->leaveType?->name === $type ? 'X' : '' }}</span>{{ $type }}</td>
+            <td><span class="checkbox">{{ $value('leave_type') === $type ? 'X' : '' }}</span>{{ $type }}</td>
         @endforeach
     </tr>
     <tr>
         @foreach (['Compassionate Leave', 'Study Leave', 'Special Leave', 'Off Day Request'] as $type)
-            <td><span class="checkbox">{{ $leave->leaveType?->name === $type ? 'X' : '' }}</span>{{ $type }}</td>
+            <td><span class="checkbox">{{ $value('leave_type') === $type ? 'X' : '' }}</span>{{ $type }}</td>
         @endforeach
     </tr>
 </table>
@@ -83,13 +82,13 @@
 <table>
     <tr>
         <th style="width: 25%;">Responsible Approver</th>
-        <td>{{ $approval?->approver?->name ?? 'HR Admin / HR Manager' }}</td>
+        <td>{{ $value('approver', 'HR Admin / HR Manager') }}</td>
         <th style="width: 18%;">Decision</th>
-        <td>{{ $approval ? str($approval->status)->headline() : 'Pending' }}</td>
+        <td>{{ $value('decision', 'Pending') }}</td>
     </tr>
     <tr>
-        <th>Decision Date</th><td>{{ $approval?->acted_at?->format('d/m/Y H:i') ?? '-' }}</td>
-        <th>Remarks</th><td>{{ $approval?->remarks ?: '-' }}</td>
+        <th>Decision Date</th><td>{{ $value('decision_at') }}</td>
+        <th>Remarks</th><td>{{ $value('approval_remarks') }}</td>
     </tr>
 </table>
 
@@ -101,9 +100,9 @@
         <th>HR Admin / Manager</th>
     </tr>
     <tr>
-        <td>Name: {{ $employee?->full_name }}<br>Date: ____________________</td>
+        <td>Name: {{ $value('employee_name') }}<br>Date: ____________________</td>
         <td>Name: ____________________<br>Date: ____________________</td>
-        <td>Name: {{ $approval?->approver?->name ?? '____________________' }}<br>Date: {{ $approval?->acted_at?->format('d/m/Y') ?? '____________________' }}</td>
+        <td>Name: {{ $value('approver', '____________________') }}<br>Date: {{ $value('decision_date', '____________________') }}</td>
     </tr>
 </table>
 </body>

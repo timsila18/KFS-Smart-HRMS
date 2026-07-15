@@ -51,7 +51,7 @@ class EmployeeSelfServiceController extends Controller
 
         $leaveRequest->loadMissing(['employee.department', 'employee.station', 'employee.jobPosition', 'leaveType', 'approvals.approver']);
 
-        return Pdf::loadView('exports.leave-application-form', ['leave' => $leaveRequest])
+        return Pdf::loadView('exports.leave-application-form', ['leave' => $leaveRequest, 'form' => $this->leaveFormData($leaveRequest)])
             ->setPaper('a4')
             ->download("kfs-leave-application-{$leaveRequest->uuid}.pdf");
     }
@@ -170,5 +170,35 @@ class EmployeeSelfServiceController extends Controller
         $this->ess->updateBankDetails($request->user(), $validated);
 
         return back()->with('status', 'Bank details updated for payroll net-to-bank reporting.');
+    }
+
+    private function leaveFormData(LeaveRequest $leaveRequest): array
+    {
+        $employee = $leaveRequest->employee;
+        $approval = $leaveRequest->approvals->sortByDesc('acted_at')->first() ?? $leaveRequest->approvals->first();
+        $startDate = $leaveRequest->start_date ? \Illuminate\Support\Carbon::parse($leaveRequest->start_date) : null;
+        $endDate = $leaveRequest->end_date ? \Illuminate\Support\Carbon::parse($leaveRequest->end_date) : null;
+        $actedAt = $approval?->acted_at ? \Illuminate\Support\Carbon::parse($approval->acted_at) : null;
+
+        return [
+            'employee_name' => $employee?->full_name ?? '-',
+            'employee_number' => $employee?->employee_number ?? '-',
+            'station' => $employee?->station?->name ?? 'Not captured',
+            'department' => $employee?->department?->name ?? 'Not captured',
+            'designation' => $employee?->jobPosition?->title ?? 'Not captured',
+            'terms' => str($employee?->employment_status ?? 'active')->headline()->toString(),
+            'leave_type' => $leaveRequest->leaveType?->name ?? 'Leave',
+            'requested_days' => number_format((float) $leaveRequest->requested_days, 2),
+            'start_date' => $startDate?->format('d/m/Y') ?? '-',
+            'end_date' => $endDate?->format('d/m/Y') ?? '-',
+            'resume_date' => $endDate?->copy()->addDay()->format('d/m/Y') ?? '-',
+            'status' => str($leaveRequest->status)->headline()->toString(),
+            'reason' => $leaveRequest->reason ?: '-',
+            'approver' => $approval?->approver?->name ?? 'HR Admin / HR Manager',
+            'decision' => $approval ? str($approval->status)->headline()->toString() : 'Pending',
+            'decision_at' => $actedAt?->format('d/m/Y H:i') ?? '-',
+            'decision_date' => $actedAt?->format('d/m/Y') ?? '____________________',
+            'approval_remarks' => $approval?->remarks ?: '-',
+        ];
     }
 }
