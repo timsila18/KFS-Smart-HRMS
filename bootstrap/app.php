@@ -8,10 +8,13 @@ use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -46,6 +49,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->report(function (\Throwable $exception): void {
+            error_log(sprintf(
+                '[KFS-HRMS] %s: %s in %s:%d',
+                $exception::class,
+                $exception->getMessage(),
+                $exception->getFile(),
+                $exception->getLine(),
+            ));
+
             Log::error($exception->getMessage(), [
                 'exception' => $exception::class,
                 'file' => $exception->getFile(),
@@ -54,6 +65,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (\Throwable $exception, Request $request) {
+            if ($exception instanceof AuthenticationException || $exception instanceof ValidationException) {
+                return null;
+            }
+
+            if ($exception instanceof HttpExceptionInterface && $exception->getStatusCode() < 500) {
+                return null;
+            }
+
             if (env('APP_RUNNING_ON_VERCEL')) {
                 $status = method_exists($exception, 'getStatusCode')
                     ? $exception->getStatusCode()

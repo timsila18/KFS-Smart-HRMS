@@ -3,6 +3,7 @@
 namespace App\Services\Dashboard;
 
 use Carbon\CarbonImmutable;
+use Throwable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -13,7 +14,13 @@ class KfsDashboardService
      */
     public function summary(): array
     {
-        return Cache::remember('dashboard.summary', (int) config('kfs-dashboard.summary_cache_seconds', 300), fn (): array => $this->buildSummary());
+        try {
+            return Cache::remember('dashboard.summary', (int) config('kfs-dashboard.summary_cache_seconds', 300), fn (): array => $this->buildSummary());
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return $this->buildSummary();
+        }
     }
 
     /**
