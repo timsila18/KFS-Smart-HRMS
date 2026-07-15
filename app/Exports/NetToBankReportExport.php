@@ -18,6 +18,7 @@ class NetToBankReportExport implements FromArray, Responsable, WithEvents, WithT
     use Exportable;
 
     private string $writerType = Excel::XLSX;
+    private ?array $preparedRows = null;
 
     /**
      * @param iterable<int, array<string, mixed>|object> $rows
@@ -43,7 +44,7 @@ class NetToBankReportExport implements FromArray, Responsable, WithEvents, WithT
 
         $serial = 1;
 
-        foreach (collect($this->rows) as $row) {
+        foreach ($this->preparedRows() as $row) {
             $data = (array) $row;
             $accountNumber = (string) ($data['account_number'] ?? $data['accountNum'] ?? '');
 
@@ -107,6 +108,29 @@ class NetToBankReportExport implements FromArray, Responsable, WithEvents, WithT
 
     private function reportTitle(): string
     {
-        return 'HRIS-KE NET PAY FOR THE MONTH OF '.strtoupper($this->periodLabel ?: now()->format('F, Y'));
+        return $this->employerTitle().' NET PAY FOR THE MONTH OF '.strtoupper($this->periodLabel ?: now()->format('F, Y'));
+    }
+
+    private function employerTitle(): string
+    {
+        $employers = collect($this->preparedRows())
+            ->map(fn ($row): string => trim((string) (((array) $row)['employer'] ?? '')))
+            ->filter()
+            ->unique(fn (string $employer): string => strtoupper($employer))
+            ->values();
+
+        if ($employers->count() === 1) {
+            return match (strtoupper($employers->first())) {
+                'KFS' => 'KFS CONTRACT STAFF',
+                default => strtoupper($employers->first()),
+            };
+        }
+
+        return $employers->isEmpty() ? 'EMPLOYER' : 'MULTI-EMPLOYER';
+    }
+
+    private function preparedRows(): array
+    {
+        return $this->preparedRows ??= collect($this->rows)->all();
     }
 }
