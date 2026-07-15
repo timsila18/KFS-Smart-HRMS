@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Download, Eye, FileText, FileUp, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { Download, Eye, FileText, FileUp, Plus, RotateCcw, Search, SlidersHorizontal, WalletCards } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
@@ -13,6 +13,8 @@ type Employee = {
     employee_number: string;
     full_name: string;
     employment_status: string;
+    payroll_status?: string;
+    account_status?: string;
     employer: string;
     station?: { name: string } | null;
     department?: { name: string } | null;
@@ -54,6 +56,16 @@ export default function EmployeeIndex({
     const exportUrl = (format: 'excel' | 'pdf') => {
         const params = new URLSearchParams(Object.entries(form).filter(([, value]) => String(value).length > 0));
         return `/employees/export/${format}?${params.toString()}`;
+    };
+
+    const needsReinstate = (employee: Employee) => ['exited', 'inactive', 'separated'].includes(employee.employment_status)
+        || employee.payroll_status === 'stopped'
+        || employee.account_status === 'suspended';
+
+    const postAction = (url: string, message: string) => {
+        if (window.confirm(message)) {
+            router.post(url, {}, { preserveScroll: true });
+        }
     };
 
     return (
@@ -156,7 +168,7 @@ export default function EmployeeIndex({
                             </thead>
                             <tbody className="divide-y">
                                 {employees.data.map((employee) => (
-                                    <tr key={employee.uuid}>
+                                    <tr key={employee.uuid} className="align-top">
                                         <td className="px-4 py-3">
                                             <p className="font-medium">{employee.full_name}</p>
                                             <p className="text-xs text-muted-foreground">{employee.employee_number}</p>
@@ -165,11 +177,38 @@ export default function EmployeeIndex({
                                         <td className="px-4 py-3">{employee.department?.name ?? '-'}</td>
                                         <td className="px-4 py-3">{employee.employer ?? 'KFS'}</td>
                                         <td className="px-4 py-3">{employee.job_position?.title ?? '-'}</td>
-                                        <td className="px-4 py-3"><span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium">{employee.employment_status}</span></td>
-                                        <td className="px-4 py-3 text-right">
-                                            <Link href={`/employees/${employee.uuid}`} className="inline-flex items-center gap-2 text-primary hover:underline">
-                                                <Eye className="h-4 w-4" /> View
-                                            </Link>
+                                        <td className="px-4 py-3">
+                                            <div className="flex flex-wrap gap-1">
+                                                <span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium">{employee.employment_status}</span>
+                                                <span className="rounded-md bg-secondary/70 px-2 py-1 text-xs font-medium">{employee.payroll_status ?? 'live'}</span>
+                                                <span className="rounded-md bg-secondary/70 px-2 py-1 text-xs font-medium">{employee.account_status ?? 'active'}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex min-w-56 flex-wrap justify-end gap-2">
+                                                <Link href={`/employees/${employee.uuid}`} className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-xs font-medium text-primary hover:bg-muted">
+                                                    <Eye className="h-4 w-4" /> Staff File
+                                                </Link>
+                                                <Link href={`/employees/${employee.uuid}#salary`} className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-xs font-medium hover:bg-muted">
+                                                    <WalletCards className="h-4 w-4" /> Review Salary
+                                                </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => postAction(`/employees/${employee.uuid}/stop-salary`, `Stop salary for ${employee.full_name}?`)}
+                                                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-xs font-medium hover:bg-muted"
+                                                >
+                                                    Stop Salary
+                                                </button>
+                                                {needsReinstate(employee) && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => postAction(`/employees/${employee.uuid}/reinstate`, `Reinstate ${employee.full_name}?`)}
+                                                        className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground"
+                                                    >
+                                                        <RotateCcw className="h-4 w-4" /> Reinstate Staff
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

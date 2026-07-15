@@ -27,6 +27,10 @@ class Employee extends Model
         'date_of_birth',
         'gender',
         'employment_status',
+        'payroll_status',
+        'account_status',
+        'separated_at',
+        'reinstated_at',
         'employer',
         'photo_path',
         'hire_date',
@@ -39,6 +43,8 @@ class Employee extends Model
         return [
             'date_of_birth' => 'date',
             'hire_date' => 'date',
+            'separated_at' => 'datetime',
+            'reinstated_at' => 'datetime',
         ];
     }
 

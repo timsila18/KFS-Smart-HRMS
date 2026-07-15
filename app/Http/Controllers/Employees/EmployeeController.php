@@ -120,6 +120,46 @@ class EmployeeController extends Controller
         return back()->with('status', 'Attachment uploaded.');
     }
 
+    public function stopSalary(Request $request, Employee $employee): RedirectResponse
+    {
+        $this->authorize('update', $employee);
+        $this->service->stopSalary($employee, $request);
+
+        return back()->with('status', 'Staff salary has been stopped.');
+    }
+
+    public function reinstate(Request $request, Employee $employee): RedirectResponse
+    {
+        $this->authorize('update', $employee);
+        $this->service->reinstate($employee, $request);
+
+        return back()->with('status', 'Staff member has been reinstated.');
+    }
+
+    public function suspendAccount(Request $request, Employee $employee): RedirectResponse
+    {
+        $this->authorize('update', $employee);
+        $this->service->suspendAccount($employee, $request);
+
+        return back()->with('status', 'ESS account suspended.');
+    }
+
+    public function activateAccount(Request $request, Employee $employee): RedirectResponse
+    {
+        $this->authorize('update', $employee);
+        $this->service->activateAccount($employee, $request);
+
+        return back()->with('status', 'ESS account activated.');
+    }
+
+    public function resetPassword(Request $request, Employee $employee): RedirectResponse
+    {
+        $this->authorize('update', $employee);
+        $this->service->resetEssPassword($employee, $request);
+
+        return back()->with('status', 'ESS password reset to the configured default password.');
+    }
+
     public function exportExcel(EmployeeIndexRequest $request): EmployeesExport
     {
         $this->authorize('export', Employee::class);

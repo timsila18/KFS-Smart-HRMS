@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Briefcase, Building2, Camera, FileUp, Landmark, Mail, Pencil, Phone, ShieldAlert, UserRound } from 'lucide-react';
+import { ArrowLeft, Briefcase, Building2, Camera, FileCheck2, FileText, FileUp, GitBranch, KeyRound, Landmark, Mail, Pencil, Phone, Power, RotateCcw, ShieldAlert, UserRound, WalletCards } from 'lucide-react';
 import type React from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
@@ -30,10 +30,23 @@ function Section({ title, icon: Icon, children }: { title: string; icon: any; ch
     );
 }
 
+function EmptyState({ label }: { label: string }) {
+    return <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">{label}</p>;
+}
+
 export default function EmployeeShow({ employee, auditLogs }: { employee: { data: Employee }; auditLogs: AuditLog[] }) {
     const item = employee.data;
     const photoForm = useForm<{ photo: File | null }>({ photo: null });
     const attachmentForm = useForm<{ type: string; file: File | null }>({ type: 'employee_file', file: null });
+    const isInactive = ['exited', 'inactive', 'separated'].includes(item.employment_status)
+        || item.payroll_status === 'stopped'
+        || item.account_status === 'suspended';
+
+    const postAction = (url: string, message: string) => {
+        if (window.confirm(message)) {
+            router.post(url, {}, { preserveScroll: true });
+        }
+    };
 
     const uploadPhoto = (event: React.FormEvent) => {
         event.preventDefault();
@@ -60,13 +73,41 @@ export default function EmployeeShow({ employee, auditLogs }: { employee: { data
                             <p className="mt-1 text-sm text-muted-foreground">{item.employee_number} · {item.employment_status}</p>
                         </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                        <Button variant="secondary" onClick={() => postAction(`/employees/${item.uuid}/reset-password`, 'Reset this staff member ESS password to the configured default?')}><KeyRound className="h-4 w-4" /> Reset Password</Button>
+                        {item.account_status === 'suspended' || item.user_status === 'suspended' ? (
+                            <Button variant="secondary" onClick={() => postAction(`/employees/${item.uuid}/activate-account`, 'Activate this staff member ESS account?')}><Power className="h-4 w-4" /> Activate Account</Button>
+                        ) : (
+                            <Button variant="secondary" onClick={() => postAction(`/employees/${item.uuid}/suspend-account`, 'Suspend this staff member ESS account?')}><Power className="h-4 w-4" /> Suspend Account</Button>
+                        )}
+                        {isInactive && <Button onClick={() => postAction(`/employees/${item.uuid}/reinstate`, `Reinstate ${item.full_name}?`)}><RotateCcw className="h-4 w-4" /> Reinstate Staff</Button>}
                         <Button variant="secondary" onClick={() => router.visit(`/employees/${item.uuid}/edit`)}><Pencil className="h-4 w-4" /> Edit</Button>
                     </div>
                 </section>
 
                 <section className="grid gap-6 xl:grid-cols-[1fr_340px]">
                     <div className="space-y-6">
+                        <Card className="p-3">
+                            <div className="flex flex-wrap gap-2 text-sm">
+                                {[
+                                    ['Staff File', '#staff-file'],
+                                    ['User Accounts', '#user-accounts'],
+                                    ['Lifecycle', '#lifecycle'],
+                                    ['Salary', '#salary'],
+                                    ['Documents', '#documents'],
+                                    ['Performance', '#performance'],
+                                    ['Training', '#training'],
+                                    ['Clearance', '#clearance'],
+                                    ['Add Employee', '/employees/create'],
+                                ].map(([label, href]) => (
+                                    href.startsWith('#')
+                                        ? <a key={label} href={href} className="rounded-md border px-3 py-2 font-medium hover:bg-muted">{label}</a>
+                                        : <Link key={label} href={href} className="rounded-md border px-3 py-2 font-medium hover:bg-muted">{label}</Link>
+                                ))}
+                            </div>
+                        </Card>
+
+                        <div id="staff-file" className="scroll-mt-24">
                         <Section title="Employee Profile" icon={UserRound}>
                             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                 <Detail label="First Name" value={item.first_name} />
@@ -77,14 +118,36 @@ export default function EmployeeShow({ employee, auditLogs }: { employee: { data
                                 <Detail label="Hire Date" value={item.hire_date} />
                             </div>
                         </Section>
+                        </div>
 
                         <Section title="Employment Details" icon={Building2}>
                             <div className="grid gap-4 sm:grid-cols-3">
                                 <Detail label="Station" value={item.station?.name} />
                                 <Detail label="Department" value={item.department?.name} />
                                 <Detail label="Position" value={item.job_position?.title} />
+                                <Detail label="Employer" value={item.employer ?? 'KFS'} />
+                                <Detail label="Payroll Status" value={item.payroll_status ?? 'live'} />
+                                <Detail label="Account Status" value={item.account_status ?? 'active'} />
                             </div>
                         </Section>
+
+                        <div id="user-accounts" className="scroll-mt-24">
+                        <Section title="User Accounts" icon={KeyRound}>
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                <Detail label="ESS Email" value={item.ess_email} />
+                                <Detail label="User Status" value={item.user_status ?? item.account_status ?? 'active'} />
+                                <Detail label="Last Password Reset" value="Tracked in audit log" />
+                            </div>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                <Button type="button" variant="secondary" onClick={() => postAction(`/employees/${item.uuid}/reset-password`, 'Reset this staff member ESS password?')}><KeyRound className="h-4 w-4" /> Reset Password</Button>
+                                {item.account_status === 'suspended' || item.user_status === 'suspended' ? (
+                                    <Button type="button" onClick={() => postAction(`/employees/${item.uuid}/activate-account`, 'Activate this staff member ESS account?')}>Activate Account</Button>
+                                ) : (
+                                    <Button type="button" variant="secondary" onClick={() => postAction(`/employees/${item.uuid}/suspend-account`, 'Suspend this staff member ESS account?')}>Suspend Account</Button>
+                                )}
+                            </div>
+                        </Section>
+                        </div>
 
                         <Section title="Contract Details" icon={Briefcase}>
                             <div className="space-y-3">
@@ -98,7 +161,12 @@ export default function EmployeeShow({ employee, auditLogs }: { employee: { data
                             </div>
                         </Section>
 
+                        <div id="salary" className="scroll-mt-24">
                         <Section title="Salary Details" icon={Landmark}>
+                            <div className="mb-4 flex flex-wrap gap-2">
+                                <Button type="button" variant="secondary" onClick={() => postAction(`/employees/${item.uuid}/stop-salary`, `Stop salary for ${item.full_name}?`)}><WalletCards className="h-4 w-4" /> Stop Salary</Button>
+                                {isInactive && <Button type="button" onClick={() => postAction(`/employees/${item.uuid}/reinstate`, `Reinstate ${item.full_name}?`)}><RotateCcw className="h-4 w-4" /> Reinstate Staff</Button>}
+                            </div>
                             <div className="space-y-3">
                                 {(item.salary_assignments ?? []).map((salary: any) => (
                                     <div key={salary.uuid} className="rounded-md border p-3">
@@ -109,6 +177,34 @@ export default function EmployeeShow({ employee, auditLogs }: { employee: { data
                                 {(item.salary_assignments ?? []).length === 0 && <p className="text-sm text-muted-foreground">No salary assignment.</p>}
                             </div>
                         </Section>
+                        </div>
+
+                        <div id="lifecycle" className="scroll-mt-24">
+                        <Section title="Lifecycle" icon={GitBranch}>
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <Detail label="Employment Status" value={item.employment_status} />
+                                <Detail label="Payroll Status" value={item.payroll_status ?? 'live'} />
+                                <Detail label="Separated At" value={item.separated_at ? new Date(item.separated_at).toLocaleString() : null} />
+                                <Detail label="Reinstated At" value={item.reinstated_at ? new Date(item.reinstated_at).toLocaleString() : null} />
+                            </div>
+                            <div className="mt-4 grid gap-3 md:grid-cols-2">
+                                <EmptyState label="Promotions, transfers, confirmations, contract renewals, onboarding, exit interviews, and clearance items are retained in their respective HR tables and audit history." />
+                                <EmptyState label="Use Stop Salary, Suspend Account, and Reinstate Staff to control the active lifecycle for payroll and ESS access." />
+                            </div>
+                        </Section>
+                        </div>
+
+                        <div id="performance" className="scroll-mt-24">
+                        <Section title="Performance" icon={FileCheck2}>
+                            <EmptyState label="No performance appraisal records are currently linked to this staff member." />
+                        </Section>
+                        </div>
+
+                        <div id="training" className="scroll-mt-24">
+                        <Section title="Training" icon={FileText}>
+                            <EmptyState label="No training nominations or completions are currently linked to this staff member." />
+                        </Section>
+                        </div>
 
                         <Section title="Qualifications & Professional Membership" icon={ShieldAlert}>
                             <div className="grid gap-4 lg:grid-cols-2">
@@ -150,6 +246,7 @@ export default function EmployeeShow({ employee, auditLogs }: { employee: { data
                             {(item.dependants ?? []).map((dependant: any) => <div key={dependant.uuid} className="rounded-md border p-3 text-sm">{dependant.full_name}<p className="text-muted-foreground">{dependant.relationship}</p></div>)}
                         </Section>
 
+                        <div id="documents" className="scroll-mt-24">
                         <Section title="Attachments" icon={FileUp}>
                             <form onSubmit={uploadAttachment} className="space-y-3">
                                 <Input value={attachmentForm.data.type} onChange={(e) => attachmentForm.setData('type', e.target.value)} />
@@ -160,10 +257,18 @@ export default function EmployeeShow({ employee, auditLogs }: { employee: { data
                                 {(item.attachments ?? []).map((attachment: any) => <p key={attachment.uuid} className="rounded-md border p-2 text-sm">{attachment.file_name}</p>)}
                             </div>
                         </Section>
+                        </div>
 
                         <Section title="Documents" icon={Mail}>
                             {(item.documents ?? []).map((document: any) => <div key={document.uuid} className="rounded-md border p-3 text-sm">{document.title}<p className="text-muted-foreground">{document.document_type}</p></div>)}
+                            {(item.documents ?? []).length === 0 && <EmptyState label="No statutory or service documents uploaded." />}
                         </Section>
+
+                        <div id="clearance" className="scroll-mt-24">
+                        <Section title="Clearance Management" icon={FileCheck2}>
+                            <EmptyState label="Clearance status appears here when an exit record is opened or reinstated." />
+                        </Section>
+                        </div>
 
                         <Section title="Audit Log" icon={ShieldAlert}>
                             <div className="space-y-2">

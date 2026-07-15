@@ -7,7 +7,6 @@ import { Card } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { FormError } from '@/Components/FormError';
-import { PasswordInput } from '@/Components/PasswordInput';
 
 type Lookup = { id: number; name?: string; display_name?: string; title?: string };
 type EmployeePayload = {
@@ -188,7 +187,7 @@ export default function EmployeeForm({
                             <TextInput value={data.ess.email} onChange={(v) => updateEss('email', v)} />
                         </Field>
                         <Field label={mode === 'create' ? 'Initial Password' : 'New Password (optional)'} error={errors['ess.password']}>
-                            <PasswordInput value={data.ess.password} autoComplete="new-password" onChange={(event) => updateEss('password', event.target.value)} />
+                            <TextInput type="password" value={data.ess.password} onChange={(v) => updateEss('password', v)} />
                         </Field>
                     </div>
                     <p className="mt-3 text-xs text-muted-foreground">Default initial password is configurable. Current default: KfsEss@2026.</p>

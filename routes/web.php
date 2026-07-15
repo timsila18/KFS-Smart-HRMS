@@ -50,6 +50,21 @@ Route::middleware(['auth'])->group(function (): void {
     Route::post('/employees/{employee:uuid}/attachments', [EmployeeController::class, 'attach'])
         ->middleware('permission:employees.update')
         ->name('employees.attachments.store');
+    Route::post('/employees/{employee:uuid}/stop-salary', [EmployeeController::class, 'stopSalary'])
+        ->middleware('permission:employees.update')
+        ->name('employees.stop-salary');
+    Route::post('/employees/{employee:uuid}/reinstate', [EmployeeController::class, 'reinstate'])
+        ->middleware('permission:employees.update')
+        ->name('employees.reinstate');
+    Route::post('/employees/{employee:uuid}/suspend-account', [EmployeeController::class, 'suspendAccount'])
+        ->middleware('permission:employees.update')
+        ->name('employees.suspend-account');
+    Route::post('/employees/{employee:uuid}/activate-account', [EmployeeController::class, 'activateAccount'])
+        ->middleware('permission:employees.update')
+        ->name('employees.activate-account');
+    Route::post('/employees/{employee:uuid}/reset-password', [EmployeeController::class, 'resetPassword'])
+        ->middleware('permission:employees.update')
+        ->name('employees.reset-password');
     Route::post('/employees/import', [EmployeeController::class, 'import'])
         ->middleware('permission:employees.create')
         ->name('employees.import');

@@ -93,6 +93,117 @@ class EmployeeRegisterService
         });
     }
 
+    public function stopSalary(Employee $employee, Request $request): Employee
+    {
+        return DB::transaction(function () use ($employee, $request): Employee {
+            $old = $employee->only(['employment_status', 'payroll_status']);
+            $employee->update(['payroll_status' => 'stopped']);
+
+            $employee->salaryAssignments()
+                ->where('status', 'active')
+                ->whereNull('effective_to')
+                ->update(['status' => 'stopped', 'effective_to' => now()->toDateString()]);
+
+            $this->activityLogger->record($request, 'employee.salary_stopped', $employee, $old, ['payroll_status' => 'stopped']);
+
+            return $this->employees->findByUuid($employee->uuid);
+        });
+    }
+
+    public function reinstate(Employee $employee, Request $request): Employee
+    {
+        return DB::transaction(function () use ($employee, $request): Employee {
+            $old = $employee->only(['employment_status', 'payroll_status', 'account_status', 'separated_at', 'reinstated_at']);
+            $employee->update([
+                'employment_status' => 'active',
+                'payroll_status' => 'live',
+                'account_status' => 'active',
+                'separated_at' => null,
+                'reinstated_at' => now(),
+            ]);
+
+            $employee->user?->update(['status' => 'active']);
+
+            DB::table('employee_exit_records')
+                ->where('employee_id', $employee->id)
+                ->whereIn('clearance_status', ['pending', 'in_progress', 'cleared'])
+                ->update([
+                    'clearance_status' => 'reinstated',
+                    'updated_by' => $request->user()?->id,
+                    'updated_at' => now(),
+                ]);
+
+            $this->activityLogger->record($request, 'employee.reinstated', $employee, $old, [
+                'employment_status' => 'active',
+                'payroll_status' => 'live',
+                'account_status' => 'active',
+            ]);
+
+            return $this->employees->findByUuid($employee->uuid);
+        });
+    }
+
+    public function suspendAccount(Employee $employee, Request $request): Employee
+    {
+        return DB::transaction(function () use ($employee, $request): Employee {
+            $old = [
+                'employee_account_status' => $employee->account_status,
+                'user_status' => $employee->user?->status,
+            ];
+
+            $employee->update(['account_status' => 'suspended']);
+            $employee->user?->update(['status' => 'suspended']);
+
+            $this->activityLogger->record($request, 'employee.account_suspended', $employee, $old, ['account_status' => 'suspended']);
+
+            return $this->employees->findByUuid($employee->uuid);
+        });
+    }
+
+    public function activateAccount(Employee $employee, Request $request): Employee
+    {
+        return DB::transaction(function () use ($employee, $request): Employee {
+            $old = [
+                'employee_account_status' => $employee->account_status,
+                'user_status' => $employee->user?->status,
+            ];
+
+            $employee->update(['account_status' => 'active']);
+            $employee->user?->update(['status' => 'active']);
+
+            $this->activityLogger->record($request, 'employee.account_activated', $employee, $old, ['account_status' => 'active']);
+
+            return $this->employees->findByUuid($employee->uuid);
+        });
+    }
+
+    public function resetEssPassword(Employee $employee, Request $request): Employee
+    {
+        return DB::transaction(function () use ($employee, $request): Employee {
+            $password = config('kfs-auth.default_ess_password', 'KfsEss@2026');
+
+            if (! $employee->user) {
+                $this->syncEssAccount($employee, [
+                    'ess' => [
+                        'email' => $this->generatedEssEmail($employee),
+                        'password' => $password,
+                    ],
+                    'contacts' => [],
+                ]);
+            } else {
+                $employee->user->update([
+                    'password' => $password,
+                    'status' => 'active',
+                ]);
+            }
+
+            $employee->update(['account_status' => 'active']);
+            $this->activityLogger->record($request, 'employee.ess_password_reset', $employee, [], ['account_status' => 'active']);
+
+            return $this->employees->findByUuid($employee->uuid);
+        });
+    }
+
     public function importSpreadsheet(UploadedFile $file, Request $request): array
     {
         $sheets = Excel::toCollection(null, $file);
