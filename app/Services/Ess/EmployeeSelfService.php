@@ -3,6 +3,8 @@
 namespace App\Services\Ess;
 
 use App\Models\Employee;
+use App\Models\BankBranch;
+use App\Models\EmployeeBankAccount;
 use App\Models\EssRequest;
 use App\Models\LeaveApproval;
 use App\Models\LeaveRequest;
@@ -17,7 +19,7 @@ class EmployeeSelfService
     public function employeeFor(User $user): ?Employee
     {
         return Employee::query()
-            ->with(['station', 'department', 'jobPosition', 'contacts', 'bankAccounts', 'dependants', 'documents', 'contracts.employmentType', 'contracts.contractType'])
+            ->with(['station', 'department', 'jobPosition', 'contacts', 'bankAccounts.branch', 'dependants', 'documents', 'contracts.employmentType', 'contracts.contractType'])
             ->where('user_id', $user->id)
             ->first();
     }
@@ -67,8 +69,19 @@ class EmployeeSelfService
         return [
             'employee' => $employee ? $this->employeeSummary($employee) : null,
             'contacts' => $employee?->contacts ?? [],
-            'bank_accounts' => $employee?->bankAccounts ?? [],
+            'bank_accounts' => $employee?->bankAccounts?->map(fn (EmployeeBankAccount $account): array => [
+                'uuid' => $account->uuid,
+                'bank_branch_id' => $account->bank_branch_id,
+                'bank_name' => $account->bank_name,
+                'branch_name' => $account->branch_name,
+                'bank_code' => $account->bank_code,
+                'branch_code' => $account->branch_code,
+                'account_name' => $account->account_name,
+                'account_number' => $account->account_number,
+                'is_primary' => $account->is_primary,
+            ])->values() ?? [],
             'dependants' => $employee?->dependants ?? [],
+            'bank_branches' => $this->bankBranches(),
         ];
     }
 
@@ -201,6 +214,37 @@ class EmployeeSelfService
     }
     public function requests(Employee $employee): array { return EssRequest::query()->where('employee_id', $employee->id)->latest()->get()->toArray(); }
 
+    public function updateBankDetails(User $user, array $data): EmployeeBankAccount
+    {
+        $employee = $this->employeeFor($user);
+        abort_unless($employee, 422, 'No employee profile is linked to this account.');
+
+        $branch = BankBranch::query()
+            ->where('is_active', true)
+            ->where('id', $data['bank_branch_id'])
+            ->firstOrFail();
+
+        return DB::transaction(function () use ($employee, $branch, $data): EmployeeBankAccount {
+            EmployeeBankAccount::query()
+                ->where('employee_id', $employee->id)
+                ->update(['is_primary' => false]);
+
+            return EmployeeBankAccount::query()->updateOrCreate(
+                ['employee_id' => $employee->id, 'account_number' => $data['account_number']],
+                [
+                    'bank_branch_id' => $branch->id,
+                    'bank_name' => $branch->bank_name,
+                    'bank_code' => $branch->bank_code,
+                    'branch_name' => $branch->branch_name,
+                    'branch_code' => $branch->branch_code,
+                    'account_name' => $data['account_name'],
+                    'is_primary' => true,
+                    'metadata' => ['source' => 'ess_profile_update'],
+                ]
+            );
+        });
+    }
+
     public function createRequest(User $user, array $data): EssRequest
     {
         $employee = $this->employeeFor($user);
@@ -230,6 +274,25 @@ class EmployeeSelfService
         if (! $employee) return [];
 
         return DB::table($table)->where('employee_id', $employee->id)->whereNull('deleted_at')->latest('id')->get($columns)->toArray();
+    }
+
+    private function bankBranches(): array
+    {
+        return BankBranch::query()
+            ->where('is_active', true)
+            ->orderBy('bank_name')
+            ->orderBy('branch_name')
+            ->limit(5000)
+            ->get(['id', 'bank_name', 'branch_name', 'bank_code', 'branch_code'])
+            ->map(fn (BankBranch $branch): array => [
+                'id' => $branch->id,
+                'label' => "{$branch->bank_name} - {$branch->branch_name}",
+                'bank_name' => $branch->bank_name,
+                'branch_name' => $branch->branch_name,
+                'bank_code' => $branch->bank_code,
+                'branch_code' => $branch->branch_code,
+            ])
+            ->all();
     }
 
     private function employeeSummary(Employee $employee): array
@@ -321,7 +384,7 @@ class EmployeeSelfService
             ['title' => 'My Dashboard', 'href' => '/ess', 'description' => 'Today’s service summary, notices, leave, and payroll status.'],
             ['title' => 'My Leave', 'href' => '/ess/leave', 'description' => 'Apply, track balances, and monitor approval status.'],
             ['title' => 'My Payslips', 'href' => '/ess/payslips', 'description' => 'View and download payroll history.'],
-            ['title' => 'My Documents', 'href' => '/ess/documents', 'description' => 'Review statutory, bank, and service records.'],
+            ['title' => 'My Documents', 'href' => '/ess/documents', 'description' => 'Review statutory identifiers, bank details, and service records.'],
             ['title' => 'Messages', 'href' => '/ess/messages', 'description' => 'Read notices from HR, payroll, and station administration.'],
             ['title' => 'Notifications', 'href' => '/ess/notifications', 'description' => 'Catch approvals, payroll alerts, and updates quickly.'],
             ['title' => 'My Profile', 'href' => '/ess/profile', 'description' => 'Review statutory, bank, next-of-kin, and contact details.'],
@@ -339,7 +402,15 @@ class EmployeeSelfService
     {
         $startDate = Carbon::parse($payload['start_date']);
         $endDate = Carbon::parse($payload['end_date']);
-        $leaveType = LeaveType::query()->where('code', $payload['leave_type_code'] ?? 'ANNUAL')->firstOrFail();
+        $leaveCode = $payload['leave_type_code'] ?? 'ANNUAL';
+        $leaveType = LeaveType::query()->firstOrCreate(
+            ['code' => $leaveCode],
+            [
+                'name' => $this->leaveTypeName($leaveCode),
+                'is_paid' => ! in_array($leaveCode, ['UNPAID'], true),
+                'requires_attachment' => in_array($leaveCode, ['SICK', 'MATERNITY', 'PATERNITY', 'COMPASSIONATE', 'STUDY'], true),
+            ]
+        );
         $days = $payload['requested_days'] ?? $this->workingDays($startDate, $endDate);
 
         $leaveRequest = LeaveRequest::query()->create([
@@ -373,6 +444,21 @@ class EmployeeSelfService
         }
 
         return max($days, 1);
+    }
+
+    private function leaveTypeName(string $code): string
+    {
+        return [
+            'ANNUAL' => 'Annual Leave',
+            'COMPASSIONATE' => 'Compassionate Leave',
+            'MATERNITY' => 'Maternity Leave',
+            'OFF_DAY' => 'Off Day Request',
+            'PATERNITY' => 'Paternity Leave',
+            'SICK' => 'Sick Leave',
+            'SPECIAL' => 'Special Leave',
+            'STUDY' => 'Study Leave',
+            'UNPAID' => 'Unpaid Leave',
+        ][$code] ?? str($code)->replace('_', ' ')->headline()->toString();
     }
 
     private function singleApproverId(): int

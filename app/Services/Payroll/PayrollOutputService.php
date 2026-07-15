@@ -54,7 +54,7 @@ class PayrollOutputService
     public function bankFile(PayrollRun $run): void
     {
         $run->loadMissing('items.employee.bankAccounts');
-        $rows = ["employee_number,employee_name,bank_name,account_number,amount"];
+        $rows = ["employee_number,employee_name,bank_code,bank_name,branch_code,branch_name,account_number,amount"];
 
         foreach ($run->items->groupBy('employee_id') as $items) {
             $employee = $items->first()->employee;
@@ -63,7 +63,10 @@ class PayrollOutputService
             $rows[] = implode(',', [
                 $employee->employee_number,
                 Str::of($employee->full_name)->replace(',', ' '),
+                $bank?->bank_code ?? '',
                 Str::of($bank?->bank_name ?? '')->replace(',', ' '),
+                $bank?->branch_code ?? '',
+                Str::of($bank?->branch_name ?? '')->replace(',', ' '),
                 $bank?->account_number ?? '',
                 number_format($amount, 2, '.', ''),
             ]);

@@ -45,9 +45,14 @@ export default function EssRequests({ rows }: { rows: any[] }) {
                                     onChange={(e) => form.setData('payload', { ...form.data.payload, leave_type_code: e.target.value })}
                                 >
                                     <option value="ANNUAL">Annual Leave</option>
-                                    <option value="SICK">Sick Leave</option>
+                                    <option value="COMPASSIONATE">Compassionate Leave</option>
                                     <option value="MATERNITY">Maternity Leave</option>
+                                    <option value="OFF_DAY">Off Day Request</option>
                                     <option value="PATERNITY">Paternity Leave</option>
+                                    <option value="SICK">Sick Leave</option>
+                                    <option value="SPECIAL">Special Leave</option>
+                                    <option value="STUDY">Study Leave</option>
+                                    <option value="UNPAID">Unpaid Leave</option>
                                 </select>
                             </div>
                             <div className="space-y-2">

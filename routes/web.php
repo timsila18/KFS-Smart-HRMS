@@ -19,6 +19,7 @@ Route::middleware(['auth'])->group(function (): void {
     Route::prefix('ess')->name('ess.')->middleware('permission:ess.view')->group(function (): void {
         Route::get('/', [EmployeeSelfServiceController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [EmployeeSelfServiceController::class, 'profile'])->name('profile');
+        Route::post('/profile/bank', [EmployeeSelfServiceController::class, 'updateBank'])->name('profile.bank.update');
         Route::get('/payslips', [EmployeeSelfServiceController::class, 'payslips'])->name('payslips');
         Route::get('/p9', [EmployeeSelfServiceController::class, 'p9'])->name('p9');
         Route::get('/leave', [EmployeeSelfServiceController::class, 'leave'])->name('leave');

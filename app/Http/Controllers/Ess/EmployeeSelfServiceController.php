@@ -113,4 +113,17 @@ class EmployeeSelfServiceController extends Controller
 
         return back()->with('status', 'Request submitted.');
     }
+
+    public function updateBank(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'bank_branch_id' => ['required', 'integer', 'exists:bank_branches,id'],
+            'account_name' => ['required', 'string', 'max:190'],
+            'account_number' => ['required', 'string', 'max:80'],
+        ]);
+
+        $this->ess->updateBankDetails($request->user(), $validated);
+
+        return back()->with('status', 'Bank details updated for payroll net-to-bank reporting.');
+    }
 }
