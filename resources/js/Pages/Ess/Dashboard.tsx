@@ -32,6 +32,30 @@ export default function EssDashboard({ employee, summary, employment, latestPays
                 <EssNav />
 
                 <div className="space-y-6">
+                    <section className="rounded-lg border bg-card p-5 shadow-sm">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                            <div>
+                                <p className="text-xs font-semibold text-muted-foreground">Kenya Forest Service · Employee Self Service · My Dashboard</p>
+                                <h2 className="mt-3 text-xl font-bold">You are logged in as {employee?.full_name ?? 'KFS staff'}</h2>
+                                <p className="mt-1 text-sm text-muted-foreground">KFS Smart HRMS personal workspace for service records, payroll, leave, notices, documents, and requests.</p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex h-14 w-20 items-center justify-center rounded-md border bg-white p-1 shadow-sm">
+                                    <img src="/images/kfs-logo.png" alt="Kenya Forest Service logo" className="max-h-full max-w-full object-contain" />
+                                </div>
+                                <Link href="/ess/messages" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Search / Jump</Link>
+                                <Link href="/ess/notifications" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Notifications</Link>
+                                <Link href="/ess/settings" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Need Help?</Link>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="rounded-lg border bg-card p-4">
+                        <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-center text-sm font-bold text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/20 dark:text-blue-100">
+                            ESS
+                        </div>
+                    </section>
+
                     <section className="grid gap-4 rounded-lg border bg-card p-5 shadow-sm lg:grid-cols-[1fr_auto]">
                         <div>
                             <div className="flex items-center gap-3">

@@ -11,6 +11,7 @@ import { FormError } from '@/Components/FormError';
 type Lookup = { id: number; name?: string; title?: string };
 type EmployeePayload = {
     profile: Record<string, any>;
+    ess: Record<string, any>;
     identifications: any[];
     contacts: any[];
     addresses: any[];
@@ -38,6 +39,10 @@ const blankPayload: EmployeePayload = {
         department_id: '',
         job_position_id: '',
         user_id: '',
+    },
+    ess: {
+        email: '',
+        password: 'KfsEss@2026',
     },
     identifications: [{ id_type: 'national_id', id_number: '' }],
     contacts: [{ contact_type: 'mobile', value: '', is_primary: true }],
@@ -91,6 +96,10 @@ export default function EmployeeForm({
             job_position_id: employee.data.job_position?.id ?? '',
             user_id: '',
         },
+        ess: {
+            email: employee.data.ess_email ?? '',
+            password: '',
+        },
         identifications: employee.data.identifications ?? blankPayload.identifications,
         contacts: employee.data.contacts ?? blankPayload.contacts,
         addresses: employee.data.addresses ?? blankPayload.addresses,
@@ -107,6 +116,7 @@ export default function EmployeeForm({
     const { data, setData, post, put, processing, errors } = useForm<EmployeePayload>(initial);
 
     const updateProfile = (key: string, value: string) => setData('profile', { ...data.profile, [key]: value });
+    const updateEss = (key: string, value: string) => setData('ess', { ...data.ess, [key]: value });
     const updateRow = (section: keyof EmployeePayload, index: number, key: string, value: any) => {
         const rows = [...(data[section] as any[])];
         rows[index] = { ...rows[index], [key]: value };
@@ -160,6 +170,20 @@ export default function EmployeeForm({
                         <Field label="Department"><select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={data.profile.department_id} onChange={(e) => updateProfile('department_id', e.target.value)}><option value="">Select department</option>{lookups.departments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></Field>
                         <Field label="Job Position"><select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={data.profile.job_position_id} onChange={(e) => updateProfile('job_position_id', e.target.value)}><option value="">Select position</option>{lookups.positions.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></Field>
                     </div>
+                </Card>
+
+                <Card className="p-5">
+                    <h2 className="mb-1 text-lg font-semibold">ESS Login Access</h2>
+                    <p className="mb-4 text-sm text-muted-foreground">Create or update the staff member's Employee Self Service account. They will log in with this email and land on their ESS workspace.</p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <Field label="ESS Email" error={errors['ess.email']}>
+                            <TextInput value={data.ess.email} onChange={(v) => updateEss('email', v)} />
+                        </Field>
+                        <Field label={mode === 'create' ? 'Initial Password' : 'New Password (optional)'} error={errors['ess.password']}>
+                            <TextInput type="password" value={data.ess.password} onChange={(v) => updateEss('password', v)} />
+                        </Field>
+                    </div>
+                    <p className="mt-3 text-xs text-muted-foreground">Default initial password is configurable. Current default: KfsEss@2026.</p>
                 </Card>
 
                 <Repeater title="Bank Details" rows={data.bank_accounts} onAdd={() => addRow('bank_accounts', { bank_name: '', branch_name: '', account_name: '', account_number: '', is_primary: false })} render={(row, index) => (

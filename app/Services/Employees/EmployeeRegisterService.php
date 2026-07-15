@@ -9,6 +9,8 @@ use App\Models\Employee;
 use App\Models\EmployeeBankAccount;
 use App\Models\JobPosition;
 use App\Models\Station;
+use App\Models\User;
+use App\Models\UserProfile;
 use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Services\Auth\ActivityLogger;
 use Illuminate\Http\UploadedFile;
@@ -36,6 +38,7 @@ class EmployeeRegisterService
         return DB::transaction(function () use ($payload, $request): Employee {
             $employee = Employee::query()->create($this->cleanRow($payload['profile']));
             $this->syncDetails($employee, $payload);
+            $this->syncEssAccount($employee, $payload);
             $this->activityLogger->record($request, 'employee.created', $employee, [], $employee->only(['employee_number', 'first_name', 'last_name']));
 
             return $this->employees->findByUuid($employee->uuid);
@@ -51,6 +54,7 @@ class EmployeeRegisterService
             $old = $employee->toArray();
             $employee->update($this->cleanRow($payload['profile']));
             $this->syncDetails($employee, $payload);
+            $this->syncEssAccount($employee, $payload);
             $this->activityLogger->record($request, 'employee.updated', $employee, $old, $employee->fresh()->toArray());
 
             return $this->employees->findByUuid($employee->uuid);
@@ -131,6 +135,12 @@ class EmployeeRegisterService
                     'job_position_id' => $this->lookupId(JobPosition::class, $data['position'], 'title'),
                 ])->save();
 
+                $this->syncEssAccount($employee, [
+                    'ess' => [
+                        'email' => $data['email'],
+                        'password' => $data['password'] ?: config('kfs-auth.default_ess_password', 'KfsEss@2026'),
+                    ],
+                ]);
                 $this->syncImportedBankAccount($employee, $data);
                 $this->activityLogger->record($request, $wasRecentlyCreated ? 'employee.imported' : 'employee.import_updated', $employee, [], $employee->only(['employee_number', 'first_name', 'last_name']));
 
@@ -216,6 +226,8 @@ class EmployeeRegisterService
             'station' => $value(['station', 'station_code', 'station_name']),
             'department' => $value(['department', 'department_code', 'directorate']),
             'position' => $value(['position', 'job_position', 'designation', 'title']),
+            'email' => Str::lower((string) $value(['email', 'official_email', 'work_email', 'ess_email'])),
+            'password' => $value(['password', 'ess_password', 'initial_password']),
             'bank_name' => $value(['bank_name', 'bank']),
             'bank_code' => $value(['bank_code']),
             'branch_name' => $value(['branch_name', 'branch']),
@@ -270,5 +282,68 @@ class EmployeeRegisterService
                 'is_primary' => true,
             ]
         );
+    }
+
+    private function syncEssAccount(Employee $employee, array $payload): void
+    {
+        $email = Str::lower((string) ($payload['ess']['email'] ?? $this->primaryEmailFromContacts($payload['contacts'] ?? [])));
+
+        if (blank($email)) {
+            $email = $this->generatedEssEmail($employee);
+        }
+
+        $password = $payload['ess']['password'] ?? config('kfs-auth.default_ess_password', 'KfsEss@2026');
+
+        $user = User::query()->firstOrNew(['email' => $email]);
+        $user->fill([
+            'name' => $employee->full_name,
+            'email' => $email,
+            'status' => 'active',
+        ]);
+
+        if (! $user->exists || filled($payload['ess']['password'] ?? null)) {
+            $user->password = $password;
+        }
+
+        if (! $user->email_verified_at) {
+            $user->email_verified_at = now();
+        }
+
+        $user->save();
+        $user->assignRole('employee');
+
+        $employee->forceFill(['user_id' => $user->id])->save();
+
+        UserProfile::query()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'employee_id' => $employee->id,
+                'phone' => $this->primaryPhoneFromContacts($payload['contacts'] ?? []),
+                'preferences' => ['landing_page' => '/ess'],
+            ]
+        );
+    }
+
+    private function primaryEmailFromContacts(array $contacts): ?string
+    {
+        return collect($contacts)
+            ->first(fn ($row): bool => Str::lower((string) ($row['contact_type'] ?? '')) === 'email' && filled($row['value'] ?? null))['value'] ?? null;
+    }
+
+    private function primaryPhoneFromContacts(array $contacts): ?string
+    {
+        return collect($contacts)
+            ->first(fn ($row): bool => in_array(Str::lower((string) ($row['contact_type'] ?? '')), ['mobile', 'phone', 'telephone'], true) && filled($row['value'] ?? null))['value'] ?? null;
+    }
+
+    private function generatedEssEmail(Employee $employee): string
+    {
+        $localPart = Str::of($employee->employee_number)
+            ->lower()
+            ->replaceMatches('/[^a-z0-9]+/', '.')
+            ->trim('.')
+            ->toString();
+
+        return "{$localPart}@".config('kfs-auth.ess_email_domain', 'kfs.go.ke');
     }
 }

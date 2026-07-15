@@ -25,6 +25,12 @@ class UpdateEmployeeRequest extends StoreEmployeeRequest
             'max:60',
             Rule::unique('employees', 'employee_number')->ignore($employee?->id),
         ];
+        $rules['ess.email'] = [
+            'nullable',
+            'email',
+            'max:190',
+            Rule::unique('users', 'email')->ignore($employee?->user_id),
+        ];
 
         return $rules;
     }

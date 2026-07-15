@@ -26,6 +26,8 @@ class StoreEmployeeRequest extends FormRequest
             'profile.department_id' => ['nullable', 'integer', 'exists:departments,id'],
             'profile.job_position_id' => ['nullable', 'integer', 'exists:job_positions,id'],
             'profile.user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'ess.email' => ['nullable', 'email', 'max:190', 'unique:users,email'],
+            'ess.password' => ['nullable', 'string', 'min:8', 'max:190'],
             'identifications' => ['array'],
             'identifications.*.id_type' => ['required_with:identifications', 'string', 'max:80'],
             'identifications.*.id_number' => ['required_with:identifications', 'string', 'max:120'],

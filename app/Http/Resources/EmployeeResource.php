@@ -23,6 +23,7 @@ class EmployeeResource extends JsonResource
             'hire_date' => $this->hire_date?->toDateString(),
             'employment_status' => $this->employment_status,
             'photo_url' => $this->photo_path ? Storage::disk('public')->url($this->photo_path) : null,
+            'ess_email' => $this->user?->email,
             'station' => $this->whenLoaded('station'),
             'department' => $this->whenLoaded('department'),
             'job_position' => $this->whenLoaded('jobPosition'),

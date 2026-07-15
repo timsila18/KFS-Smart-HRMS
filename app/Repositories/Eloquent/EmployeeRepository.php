@@ -39,6 +39,7 @@ class EmployeeRepository implements EmployeeRepositoryInterface
         return Employee::query()
             ->with([
                 'station',
+                'user',
                 'department',
                 'jobPosition.jobGrade',
                 'identifications',
