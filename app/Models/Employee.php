@@ -27,6 +27,7 @@ class Employee extends Model
         'date_of_birth',
         'gender',
         'employment_status',
+        'employer',
         'photo_path',
         'hire_date',
     ];

@@ -35,6 +35,7 @@ const blankPayload: EmployeePayload = {
         date_of_birth: '',
         hire_date: '',
         employment_status: 'active',
+        employer: 'KFS',
         station_id: '',
         department_id: '',
         job_position_id: '',
@@ -78,7 +79,7 @@ export default function EmployeeForm({
 }: {
     mode: 'create' | 'edit';
     employee: { data: any } | null;
-    lookups: { stations: Lookup[]; departments: Lookup[]; positions: Lookup[] };
+    lookups: { stations: Lookup[]; departments: Lookup[]; positions: Lookup[]; employers: string[] };
 }) {
     const initial = employee?.data ? {
         ...blankPayload,
@@ -91,6 +92,7 @@ export default function EmployeeForm({
             date_of_birth: employee.data.date_of_birth ?? '',
             hire_date: employee.data.hire_date ?? '',
             employment_status: employee.data.employment_status ?? 'active',
+            employer: employee.data.employer ?? 'KFS',
             station_id: employee.data.station?.id ?? '',
             department_id: employee.data.department?.id ?? '',
             job_position_id: employee.data.job_position?.id ?? '',
@@ -158,6 +160,11 @@ export default function EmployeeForm({
                         <Field label="Status">
                             <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={data.profile.employment_status} onChange={(e) => updateProfile('employment_status', e.target.value)}>
                                 <option value="active">Active</option><option value="inactive">Inactive</option><option value="exited">Exited</option>
+                            </select>
+                        </Field>
+                        <Field label="Employer" error={errors['profile.employer']}>
+                            <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={data.profile.employer} onChange={(e) => updateProfile('employer', e.target.value)}>
+                                {(lookups.employers ?? ['KFS']).map((employer) => <option key={employer} value={employer}>{employer}</option>)}
                             </select>
                         </Field>
                     </div>

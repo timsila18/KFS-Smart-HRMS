@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Employees;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EmployeeIndexRequest extends FormRequest
 {
@@ -16,6 +17,7 @@ class EmployeeIndexRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', 'string', 'max:60'],
+            'employer' => ['nullable', 'string', 'max:120', Rule::in(config('kfs.employers', ['KFS']))],
             'station_id' => ['nullable', 'integer'],
             'department_id' => ['nullable', 'integer'],
             'job_position_id' => ['nullable', 'integer'],

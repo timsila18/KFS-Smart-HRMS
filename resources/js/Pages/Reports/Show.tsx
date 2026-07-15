@@ -29,6 +29,7 @@ export default function Show({
     scheduleFrequencies,
     periods,
     departments,
+    employers,
 }: {
     report: Report;
     filters: Record<string, string>;
@@ -36,10 +37,12 @@ export default function Show({
     scheduleFrequencies: Record<string, ScheduleFrequency>;
     periods: Option[];
     departments: Option[];
+    employers: string[];
 }) {
     const [localFilters, setLocalFilters] = useState<Record<string, string>>({
         period_id: filters.period_id ?? '',
         department_id: filters.department_id ?? '',
+        employer: filters.employer ?? '',
         date_from: filters.date_from ?? '',
         date_to: filters.date_to ?? '',
     });
@@ -93,7 +96,7 @@ export default function Show({
                 </div>
 
                 <Card className="p-4">
-                    <form onSubmit={submitFilters} className="grid gap-4 md:grid-cols-5">
+                    <form onSubmit={submitFilters} className="grid gap-4 lg:grid-cols-6">
                         <div>
                             <Label htmlFor="period_id">Payroll Period</Label>
                             <select
@@ -116,6 +119,18 @@ export default function Show({
                             >
                                 <option value="">All departments</option>
                                 {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <Label htmlFor="employer">Employer</Label>
+                            <select
+                                id="employer"
+                                className="mt-2 h-10 w-full rounded-md border bg-background px-3 text-sm"
+                                value={localFilters.employer}
+                                onChange={(event) => setLocalFilters({ ...localFilters, employer: event.target.value })}
+                            >
+                                <option value="">All employers</option>
+                                {(employers ?? ['KFS']).map((employer) => <option key={employer} value={employer}>{employer}</option>)}
                             </select>
                         </div>
                         <div>

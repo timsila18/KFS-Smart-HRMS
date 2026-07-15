@@ -17,6 +17,7 @@ class RunReportRequest extends FormRequest
         return [
             'period_id' => ['nullable', 'integer', 'exists:payroll_periods,id'],
             'department_id' => ['nullable', 'integer', 'exists:departments,id'],
+            'employer' => ['nullable', 'string', 'max:120', Rule::in(config('kfs.employers', ['KFS']))],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
             'schedule_frequency' => ['nullable', Rule::in(array_keys(config('reports.schedule_frequencies', [])))],
@@ -28,7 +29,7 @@ class RunReportRequest extends FormRequest
     public function filters(): array
     {
         return collect($this->validated())
-            ->only(['period_id', 'department_id', 'date_from', 'date_to'])
+            ->only(['period_id', 'department_id', 'employer', 'date_from', 'date_to'])
             ->filter(fn ($value) => filled($value))
             ->all();
     }

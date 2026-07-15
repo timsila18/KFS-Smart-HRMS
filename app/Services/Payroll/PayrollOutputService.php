@@ -2,9 +2,11 @@
 
 namespace App\Services\Payroll;
 
+use App\Exports\PayrollEmployerRegisterExport;
 use App\Models\PayrollRun;
 use App\Models\Payslip;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -69,6 +71,14 @@ class PayrollOutputService
         $path = "payroll/{$run->uuid}/bank/bank-file.csv";
         Storage::disk('public')->put($path, implode("\n", $rows));
         $this->record($run, 'bank_file', $path, 'text/csv');
+    }
+
+    public function payrollRegisterByEmployer(PayrollRun $run): void
+    {
+        $path = "payroll/{$run->uuid}/reports/payroll-register-by-employer.xlsx";
+
+        Excel::store(new PayrollEmployerRegisterExport($run), $path, 'public');
+        $this->record($run, 'payroll_register_by_employer', $path, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
 
     public function statutoryReports(PayrollRun $run): void

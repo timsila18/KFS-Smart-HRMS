@@ -130,6 +130,7 @@ class EmployeeRegisterService
                     'date_of_birth' => $data['date_of_birth'],
                     'hire_date' => $data['hire_date'],
                     'employment_status' => $data['employment_status'] ?: 'active',
+                    'employer' => $this->normaliseEmployer($data['employer']),
                     'station_id' => $this->lookupId(Station::class, $data['station']),
                     'department_id' => $this->lookupId(Department::class, $data['department']),
                     'job_position_id' => $this->lookupId(JobPosition::class, $data['position'], 'title'),
@@ -223,6 +224,7 @@ class EmployeeRegisterService
             'date_of_birth' => $this->importDate($value(['date_of_birth', 'dob'])),
             'hire_date' => $this->importDate($value(['hire_date', 'employment_date', 'date_joined'])),
             'employment_status' => Str::lower((string) ($value(['employment_status', 'status']) ?: 'active')),
+            'employer' => $value(['employer', 'funding_source', 'programme', 'program', 'project']),
             'station' => $value(['station_code', 'station', 'station_name']),
             'department' => $value(['department', 'department_code', 'directorate']),
             'position' => $value(['position', 'job_position', 'designation', 'title']),
@@ -247,6 +249,14 @@ class EmployeeRegisterService
         }
 
         return rescue(fn () => Carbon::parse((string) $value)->toDateString(), null, false);
+    }
+
+    private function normaliseEmployer(?string $value): string
+    {
+        $employer = Str::of((string) ($value ?: 'KFS'))->squish()->upper()->toString();
+
+        return collect(config('kfs.employers', ['KFS']))
+            ->first(fn (string $option): bool => Str::upper($option) === $employer, 'KFS');
     }
 
     private function lookupId(string $model, ?string $value, string $nameColumn = 'name'): ?int

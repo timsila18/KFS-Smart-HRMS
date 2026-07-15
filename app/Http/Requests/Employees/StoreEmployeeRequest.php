@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Employees;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreEmployeeRequest extends FormRequest
 {
@@ -22,6 +23,7 @@ class StoreEmployeeRequest extends FormRequest
             'profile.date_of_birth' => ['nullable', 'date', 'before:today'],
             'profile.hire_date' => ['nullable', 'date'],
             'profile.employment_status' => ['required', 'string', 'max:60'],
+            'profile.employer' => ['required', 'string', 'max:120', Rule::in(config('kfs.employers', ['KFS']))],
             'profile.station_id' => ['nullable', 'integer', 'exists:stations,id'],
             'profile.department_id' => ['nullable', 'integer', 'exists:departments,id'],
             'profile.job_position_id' => ['nullable', 'integer', 'exists:job_positions,id'],

@@ -19,6 +19,7 @@ class EmployeeFactory extends Factory
             'date_of_birth' => fake()->dateTimeBetween('-58 years', '-22 years')->format('Y-m-d'),
             'gender' => fake()->randomElement(['female', 'male']),
             'employment_status' => 'active',
+            'employer' => 'KFS',
             'hire_date' => fake()->dateTimeBetween('-15 years', 'now')->format('Y-m-d'),
         ];
     }

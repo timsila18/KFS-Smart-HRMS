@@ -174,6 +174,7 @@ class EmployeeController extends Controller
             'date_of_birth',
             'hire_date',
             'employment_status',
+            'employer',
             'station',
             'station_code',
             'department',
@@ -197,6 +198,7 @@ class EmployeeController extends Controller
             '1990-01-31',
             now()->toDateString(),
             'active',
+            'KFS',
             'Kakamega Forest Station',
             'STN-WESTERN-KAKAMEGA-KAKAMEGA',
             'Human Resource Management',
@@ -210,7 +212,7 @@ class EmployeeController extends Controller
             '0123456789',
         ], null, 'A2');
 
-        foreach (range('A', 'S') as $column) {
+        foreach (range('A', 'T') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
@@ -219,6 +221,7 @@ class EmployeeController extends Controller
         $instructions->fromArray([
             ['KFS Smart HRMS Staff Onboarding Template'],
             ['Fill Staff Import sheet and upload it from Employees > Bulk Staff Import.'],
+            ['Employer must be one of: '.implode(', ', config('kfs.employers', ['KFS'])).'.'],
             ['Use station_code where possible. Station may be a Conservancy, County, or Forest Station from the KFS stations list.'],
             ['If email is provided, an ESS account is created and linked to the staff profile.'],
             ['If initial_password is blank, the configured default ESS password is used.'],
@@ -258,6 +261,7 @@ class EmployeeController extends Controller
             'stations' => $stations,
             'departments' => Department::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'positions' => JobPosition::query()->where('is_active', true)->orderBy('title')->get(['id', 'title']),
+            'employers' => config('kfs.employers', ['KFS']),
         ];
     }
 

@@ -13,6 +13,7 @@ type Employee = {
     employee_number: string;
     full_name: string;
     employment_status: string;
+    employer: string;
     station?: { name: string } | null;
     department?: { name: string } | null;
     job_position?: { title: string } | null;
@@ -33,11 +34,12 @@ export default function EmployeeIndex({
 }: {
     employees: Paginated<Employee>;
     filters: Record<string, string>;
-    lookups: { stations: Lookup[]; departments: Lookup[]; positions: Lookup[] };
+    lookups: { stations: Lookup[]; departments: Lookup[]; positions: Lookup[]; employers: string[] };
 }) {
     const [form, setForm] = useState({
         search: filters.search ?? '',
         status: filters.status ?? '',
+        employer: filters.employer ?? '',
         station_id: filters.station_id ?? '',
         department_id: filters.department_id ?? '',
         job_position_id: filters.job_position_id ?? '',
@@ -78,7 +80,7 @@ export default function EmployeeIndex({
                 </section>
 
                 <Card id="bulk-import" className="p-5 scroll-mt-24">
-                    <form onSubmit={applyFilters} className="grid gap-3 lg:grid-cols-[1.2fr_160px_1fr_1fr_1fr_auto]">
+                    <form onSubmit={applyFilters} className="grid gap-3 xl:grid-cols-[1.2fr_150px_220px_1fr_1fr_1fr_auto]">
                         <div className="relative">
                             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                             <Input className="pl-9" placeholder="Search employee number or name" value={form.search} onChange={(e) => setForm({ ...form, search: e.target.value })} />
@@ -88,6 +90,10 @@ export default function EmployeeIndex({
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                             <option value="exited">Exited</option>
+                        </select>
+                        <select className="rounded-md border bg-background px-3 py-2 text-sm" value={form.employer} onChange={(e) => setForm({ ...form, employer: e.target.value })}>
+                            <option value="">All employers</option>
+                            {(lookups.employers ?? ['KFS']).map((employer) => <option key={employer} value={employer}>{employer}</option>)}
                         </select>
                         <select className="rounded-md border bg-background px-3 py-2 text-sm" value={form.station_id} onChange={(e) => setForm({ ...form, station_id: e.target.value })}>
                             <option value="">All stations</option>
@@ -142,6 +148,7 @@ export default function EmployeeIndex({
                                     <th className="px-4 py-3">Employee</th>
                                     <th className="px-4 py-3">Station</th>
                                     <th className="px-4 py-3">Department</th>
+                                    <th className="px-4 py-3">Employer</th>
                                     <th className="px-4 py-3">Position</th>
                                     <th className="px-4 py-3">Status</th>
                                     <th className="px-4 py-3"></th>
@@ -156,6 +163,7 @@ export default function EmployeeIndex({
                                         </td>
                                         <td className="px-4 py-3">{employee.station?.name ?? '-'}</td>
                                         <td className="px-4 py-3">{employee.department?.name ?? '-'}</td>
+                                        <td className="px-4 py-3">{employee.employer ?? 'KFS'}</td>
                                         <td className="px-4 py-3">{employee.job_position?.title ?? '-'}</td>
                                         <td className="px-4 py-3"><span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium">{employee.employment_status}</span></td>
                                         <td className="px-4 py-3 text-right">
@@ -166,7 +174,7 @@ export default function EmployeeIndex({
                                     </tr>
                                 ))}
                                 {employees.data.length === 0 && (
-                                    <tr><td className="px-4 py-8 text-center text-muted-foreground" colSpan={6}>No employees found.</td></tr>
+                                    <tr><td className="px-4 py-8 text-center text-muted-foreground" colSpan={7}>No employees found.</td></tr>
                                 )}
                             </tbody>
                         </table>

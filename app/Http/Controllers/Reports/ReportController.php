@@ -55,6 +55,7 @@ class ReportController extends Controller
                 ->limit(36)
                 ->get(['id', 'code', DB::raw('code as name')]),
             'departments' => DB::table('departments')->whereNull('deleted_at')->orderBy('name')->get(['id', 'code', 'name']),
+            'employers' => config('kfs.employers', ['KFS']),
         ]);
     }
 

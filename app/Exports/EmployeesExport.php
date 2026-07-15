@@ -28,7 +28,7 @@ class EmployeesExport implements FromQuery, Responsable, WithHeadings, WithMappi
 
     public function headings(): array
     {
-        return ['Employee No', 'Name', 'Status', 'Station', 'Department', 'Position', 'Hire Date'];
+        return ['Employee No', 'Name', 'Employer', 'Status', 'Station', 'Department', 'Position', 'Hire Date'];
     }
 
     public function map($employee): array
@@ -36,6 +36,7 @@ class EmployeesExport implements FromQuery, Responsable, WithHeadings, WithMappi
         return [
             $employee->employee_number,
             $employee->full_name,
+            $employee->employer,
             $employee->employment_status,
             $employee->station?->name,
             $employee->department?->name,

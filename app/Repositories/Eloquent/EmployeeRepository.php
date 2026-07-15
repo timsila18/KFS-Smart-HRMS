@@ -23,6 +23,7 @@ class EmployeeRepository implements EmployeeRepositoryInterface
                 });
             })
             ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('employment_status', $status))
+            ->when($filters['employer'] ?? null, fn (Builder $query, string $employer) => $query->where('employer', $employer))
             ->when($filters['station_id'] ?? null, fn (Builder $query, int|string $stationId) => $query->where('station_id', $stationId))
             ->when($filters['department_id'] ?? null, fn (Builder $query, int|string $departmentId) => $query->where('department_id', $departmentId))
             ->when($filters['job_position_id'] ?? null, fn (Builder $query, int|string $positionId) => $query->where('job_position_id', $positionId))
