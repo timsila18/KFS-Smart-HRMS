@@ -132,9 +132,9 @@ export default function EmployeeIndex({
                             <p className="mt-1 text-sm text-muted-foreground">
                                 Download the template, fill staff details, then upload it to create employee records, ESS accounts, station assignments, and bank details.
                             </p>
-                            <Button type="button" variant="secondary" className="mt-3" onClick={() => router.visit('/employees/import/template')}>
+                            <a href="/employees/import/template" className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-md bg-secondary px-4 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80">
                                 <Download className="h-4 w-4" /> Download Onboarding Template
-                            </Button>
+                            </a>
                         </div>
                         <form
                             onSubmit={(event) => {

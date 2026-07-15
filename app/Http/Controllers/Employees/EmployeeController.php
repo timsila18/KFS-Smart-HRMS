@@ -275,6 +275,8 @@ class EmployeeController extends Controller
             (new Xlsx($spreadsheet))->save('php://output');
         }, 'kfs-staff-onboarding-template.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="kfs-staff-onboarding-template.xlsx"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
         ]);
     }
 
