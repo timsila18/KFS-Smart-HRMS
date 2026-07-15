@@ -38,7 +38,7 @@ export function EssNav() {
     const { url } = usePage();
 
     return (
-        <aside className="rounded-lg border bg-card p-3">
+        <aside className="rounded-lg border bg-card p-3 xl:sticky xl:top-6 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
             <div className="mb-3 rounded-md border bg-secondary/40 p-3">
                 <p className="text-xs font-bold uppercase text-primary">KFS ESS</p>
                 <p className="mt-1 text-sm text-muted-foreground">Your service records, payroll, leave, notices, and personal requests.</p>

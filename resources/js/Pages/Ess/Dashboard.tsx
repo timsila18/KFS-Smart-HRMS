@@ -44,9 +44,9 @@ export default function EssDashboard({ employee, summary, employment, latestPays
                                 <div className="flex h-14 w-20 items-center justify-center rounded-md border bg-white p-1 shadow-sm">
                                     <KfsLogo className="max-h-full max-w-full object-contain" />
                                 </div>
-                                <Link href="/ess/messages" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Search / Jump</Link>
+                                <Link href="/ess/messages" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Messages</Link>
                                 <Link href="/ess/notifications" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Notifications</Link>
-                                <Link href="/ess/settings" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Need Help?</Link>
+                                <Link href="/ess/settings" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Settings</Link>
                             </div>
                         </div>
                     </section>

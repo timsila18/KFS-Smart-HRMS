@@ -1,7 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Bell, CalendarDays, Download, FileArchive, FileText, Landmark, Settings, ShieldCheck, Star, WalletCards } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
-import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
 import { EssNav } from '@/Components/Ess/EssNav';
 
@@ -206,7 +205,7 @@ function SettingsSection({ rows }: { rows: Record<string, any>[] }) {
             </Card>
             <Card className="p-5">
                 <h2 className="font-semibold">Password & Security</h2>
-                <p className="mt-2 text-sm text-muted-foreground">Use the main Change Password panel to update your KFS Smart HRMS access password. Password reveal is available here and on login forms, while staff onboarding passwords remain hidden.</p>
+                <p className="mt-2 text-sm text-muted-foreground">Use My Settings to review account access and password guidance. Password reveal is available on login and password forms.</p>
                 <div className="mt-4">
                     <TableSection rows={rows} />
                 </div>
@@ -274,10 +273,13 @@ function TableSection({ rows, actions = false }: { rows: Record<string, any>[]; 
 function ActionLinks({ row }: { row: Record<string, any> }) {
     const url = row.url ?? row.file_path;
 
+    if (!url) {
+        return null;
+    }
+
     return (
         <div className="flex shrink-0 flex-wrap justify-end gap-2">
-            <Button type="button" variant="secondary" className="h-8 px-3 text-xs">View</Button>
-            {url && <a href={String(url)} className="inline-flex h-8 items-center gap-1 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground"><Download className="h-3.5 w-3.5" /> Download</a>}
+            <a href={String(url)} className="inline-flex h-8 items-center gap-1 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground"><Download className="h-3.5 w-3.5" /> Download</a>
         </div>
     );
 }
