@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auth\ActivityLogger;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,7 @@ class TwoFactorChallengeController extends Controller
     public function create(Request $request): Response|RedirectResponse
     {
         if (! $request->session()->get('auth.two_factor_pending')) {
-            return redirect()->route('dashboard');
+            return redirect()->to($this->fallbackUrl($request->user()));
         }
 
         return Inertia::render('Auth/TwoFactorChallenge');
@@ -41,6 +42,19 @@ class TwoFactorChallengeController extends Controller
         $request->session()->forget('auth.two_factor_pending');
         $logger->record($request, 'two_factor.passed', $user, [], ['ip' => $request->ip()]);
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended($this->fallbackUrl($user));
+    }
+
+    private function fallbackUrl(?User $user): string
+    {
+        if ($user?->hasRole('employee')) {
+            return route('ess.dashboard', absolute: false);
+        }
+
+        if ($user?->can('dashboard.view')) {
+            return route('dashboard', absolute: false);
+        }
+
+        return route('ess.dashboard', absolute: false);
     }
 }

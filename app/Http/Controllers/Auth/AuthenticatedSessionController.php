@@ -9,6 +9,7 @@ use App\Services\Auth\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -38,7 +39,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('two-factor.challenge');
         }
 
-        return redirect()->intended(route($this->redirectRoute($user), absolute: false));
+        return redirect()->to($this->postLoginUrl($request, $user));
     }
 
     public function destroy(Request $request, ActivityLogger $logger): RedirectResponse
@@ -63,5 +64,36 @@ class AuthenticatedSessionController extends Controller
         }
 
         return 'dashboard';
+    }
+
+    private function postLoginUrl(Request $request, User $user): string
+    {
+        $fallback = route($this->redirectRoute($user), absolute: false);
+        $intended = $request->session()->pull('url.intended');
+
+        if (! is_string($intended) || $intended === '') {
+            return $fallback;
+        }
+
+        $path = parse_url($intended, PHP_URL_PATH) ?: '/';
+
+        if ($this->canOpenPath($user, $path)) {
+            return $intended;
+        }
+
+        return $fallback;
+    }
+
+    private function canOpenPath(User $user, string $path): bool
+    {
+        return match (true) {
+            $path === '/dashboard' => $user->can('dashboard.view'),
+            Str::startsWith($path, '/ess') => $user->can('ess.view'),
+            Str::startsWith($path, '/employees') => $user->can('employees.view'),
+            Str::startsWith($path, '/leave') => $user->can('leave.view') || $user->can('ess.view'),
+            Str::startsWith($path, '/payroll') => $user->can('payroll.view'),
+            Str::startsWith($path, '/reports') => $user->can('reports.view'),
+            default => true,
+        };
     }
 }
