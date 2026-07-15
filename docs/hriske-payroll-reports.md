@@ -1,14 +1,14 @@
-# HRISKE Payroll Reports
+# Government Payroll Reports
 
-The payroll reporting module now includes report formats based on the Government HRISKE payroll exports supplied for vote `12103`.
+The payroll reporting module now includes report formats based on the Government payroll exports supplied for vote `12103`.
 
 ## Added Payroll Reports
 
-- HRISKE Wagebill
-- HRISKE Earnings & Deductions
-- HRISKE Monthly Deduction Postings
-- HRISKE Individual Payment Breakdown
-- HRISKE Bank Summary
+- Wagebill
+- Earnings & Deductions
+- Monthly Deduction Postings
+- Individual Payment Breakdown
+- Bank Summary
 - Bank Branch Register
 
 These reports are available through the normal Reports module and can be previewed, filtered by payroll period, exported to Excel, and exported to PDF.

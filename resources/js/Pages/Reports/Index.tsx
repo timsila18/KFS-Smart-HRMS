@@ -7,6 +7,7 @@ type Report = {
     id: number;
     uuid: string;
     code: string;
+    display_code?: string;
     name: string;
     module: string;
     is_schedulable: boolean;
@@ -56,7 +57,7 @@ export default function Index({ reports, latestRuns }: { reports: Record<string,
                                                     )}
                                                 </div>
                                                 <h3 className="mt-4 font-semibold">{report.name}</h3>
-                                                <p className="mt-1 text-xs text-muted-foreground">{report.code}</p>
+                                                <p className="mt-1 text-xs text-muted-foreground">{report.display_code ?? report.code}</p>
                                             </div>
                                             <Link
                                                 href={`/reports/${report.code}`}

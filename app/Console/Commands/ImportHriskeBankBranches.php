@@ -9,7 +9,7 @@ class ImportHriskeBankBranches extends Command
 {
     protected $signature = 'payroll:import-hriske-bank-branches {path : CSV file with BankCode, BranchAreaCode, BankName, BranchName}';
 
-    protected $description = 'Import official HRISKE bank and branch code register.';
+    protected $description = 'Import official government bank and branch code register.';
 
     public function handle(HriskePayrollImportService $importer): int
     {

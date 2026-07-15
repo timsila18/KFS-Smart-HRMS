@@ -144,7 +144,7 @@ export default function EssProfile({
                                     <p className="text-muted-foreground">{primaryBank.branch_name}</p>
                                     <p className="mt-3"><span className="text-muted-foreground">Account name:</span> {primaryBank.account_name ?? '-'}</p>
                                     <p><span className="text-muted-foreground">Account number:</span> {primaryBank.account_number}</p>
-                                    <p className="mt-3 text-xs text-muted-foreground">Bank and branch codes are stored securely for HRISKE-style bank schedules.</p>
+                                    <p className="mt-3 text-xs text-muted-foreground">Bank and branch codes are stored securely for KFS net-to-bank schedules.</p>
                                 </div>
                             ) : (
                                 <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">No primary bank account captured yet.</p>

@@ -26,18 +26,24 @@ class ReportController extends Controller
 
     public function index(): Response
     {
+        $reports = ReportCatalog::query()
+            ->where('is_active', true)
+            ->orderBy('module')
+            ->orderBy('name')
+            ->get(['id', 'uuid', 'code', 'name', 'module', 'is_schedulable', 'schedule_frequency', 'next_run_at'])
+            ->map(fn (ReportCatalog $report): array => $this->reportPayload($report))
+            ->groupBy('module');
+
+        $latestRuns = ReportRun::query()
+            ->with('report:id,code,name,module')
+            ->latest()
+            ->limit(12)
+            ->get(['id', 'uuid', 'report_catalog_id', 'user_id', 'status', 'parameters', 'file_path', 'completed_at', 'created_at'])
+            ->map(fn (ReportRun $run): array => $this->runPayload($run));
+
         return Inertia::render('Reports/Index', [
-            'reports' => ReportCatalog::query()
-                ->where('is_active', true)
-                ->orderBy('module')
-                ->orderBy('name')
-                ->get(['id', 'uuid', 'code', 'name', 'module', 'is_schedulable', 'schedule_frequency', 'next_run_at'])
-                ->groupBy('module'),
-            'latestRuns' => ReportRun::query()
-                ->with('report:id,code,name,module')
-                ->latest()
-                ->limit(12)
-                ->get(['id', 'uuid', 'report_catalog_id', 'user_id', 'status', 'parameters', 'file_path', 'completed_at', 'created_at']),
+            'reports' => $reports,
+            'latestRuns' => $latestRuns,
         ]);
     }
 
@@ -46,7 +52,7 @@ class ReportController extends Controller
         $dataset = $this->reports->dataset($report->code, $request->filters());
 
         return Inertia::render('Reports/Show', [
-            'report' => $report->only(['id', 'uuid', 'code', 'name', 'module', 'is_schedulable', 'schedule_frequency', 'schedule_recipients', 'next_run_at']),
+            'report' => $this->reportPayload($report, ['schedule_recipients']),
             'filters' => $request->filters(),
             'dataset' => $dataset,
             'scheduleFrequencies' => config('reports.schedule_frequencies'),
@@ -66,12 +72,12 @@ class ReportController extends Controller
         abort_unless($request->user()?->can('reports.export'), 403);
 
         $dataset = $this->reports->dataset($report->code, $request->filters());
-        $fileName = str($report->code)->lower()->replace('_', '-')->append('-'.now()->format('Ymd-His'))->toString();
+        $fileName = str($this->displayCode($report->code))->lower()->replace('_', '-')->append('-'.now()->format('Ymd-His'))->toString();
 
         $this->recordRun($report, $request, 'completed', $format);
 
         if ($format === 'pdf') {
-            return response(SimplePdf::table($report->name, $dataset['columns'], $dataset['rows']))
+            return response(SimplePdf::table($this->displayName($report), $dataset['columns'], $dataset['rows']))
                 ->header('Content-Type', 'application/pdf')
                 ->header('Content-Disposition', 'attachment; filename="'.$fileName.'.pdf"');
         }
@@ -138,6 +144,44 @@ class ReportController extends Controller
             ->value('starts_on');
 
         return $startsOn ? Carbon::parse($startsOn)->format('F, Y') : null;
+    }
+
+    private function reportPayload(ReportCatalog $report, array $extra = []): array
+    {
+        $payload = $report->only(array_merge([
+            'id',
+            'uuid',
+            'code',
+            'module',
+            'is_schedulable',
+            'schedule_frequency',
+            'next_run_at',
+        ], $extra));
+
+        $payload['name'] = $this->displayName($report);
+        $payload['display_code'] = $this->displayCode($report->code);
+
+        return $payload;
+    }
+
+    private function runPayload(ReportRun $run): array
+    {
+        $payload = $run->only(['id', 'uuid', 'status', 'parameters', 'file_path', 'completed_at', 'created_at']);
+        $payload['report'] = $run->report ? $this->reportPayload($run->report) : null;
+
+        return $payload;
+    }
+
+    private function displayName(ReportCatalog $report): string
+    {
+        $name = str_replace(['HRISKE ', 'HRIS KE ', 'HRIS-KE '], '', $report->name);
+
+        return trim($name);
+    }
+
+    private function displayCode(string $code): string
+    {
+        return str_replace(['HRISKE_', 'HRIS_KE_', 'HRIS-KE_'], '', $code);
     }
 
 }

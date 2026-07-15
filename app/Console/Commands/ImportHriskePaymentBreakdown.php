@@ -7,9 +7,9 @@ use Illuminate\Console\Command;
 
 class ImportHriskePaymentBreakdown extends Command
 {
-    protected $signature = 'payroll:import-hriske-payment-breakdown {path : HRISKE Detailed Individual Payment Breakdown CSV}';
+    protected $signature = 'payroll:import-hriske-payment-breakdown {path : Government detailed individual payment breakdown CSV}';
 
-    protected $description = 'Import HRISKE individual payment breakdown bank details into employee bank accounts.';
+    protected $description = 'Import government individual payment breakdown bank details into employee bank accounts.';
 
     public function handle(HriskePayrollImportService $importer): int
     {

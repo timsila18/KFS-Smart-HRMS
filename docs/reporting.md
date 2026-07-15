@@ -5,7 +5,7 @@ The reporting module is catalog driven. `report_catalogs` controls report names,
 ## Delivered Reports
 
 - Payroll Register, Payroll Summary, Department Payroll, Bank Schedule, Variance Report
-- HRISKE Wagebill, Earnings & Deductions, Monthly Deduction Postings, Individual Payment Breakdown, Bank Summary
+- Wagebill, Earnings & Deductions, Monthly Deduction Postings, Individual Payment Breakdown, Bank Summary
 - P9, PAYE, SHA, NSSF, Housing Levy, HELB, KEFSSWA, Asili Sacco
 - Employee Register, Contract Expiry, Leave, Performance, Training
 

@@ -47,7 +47,7 @@ export default function PayrollProcessingIndex({ runs, periods, payGroups }: { r
                 <Card className="p-5">
                     <div className="flex items-center gap-2">
                         <FileBarChart className="h-5 w-5 text-primary" />
-                        <h2 className="text-lg font-semibold">HRISKE Payroll Reports</h2>
+                        <h2 className="text-lg font-semibold">Government Payroll Reports</h2>
                     </div>
                     <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {[

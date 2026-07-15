@@ -10,6 +10,7 @@ import { FormEvent, useMemo, useState } from 'react';
 
 type Report = {
     code: string;
+    display_code?: string;
     name: string;
     module: string;
     is_schedulable: boolean;
@@ -75,7 +76,7 @@ export default function Show({
                     <div>
                         <Link href="/reports" className="text-sm font-medium text-primary">Reports</Link>
                         <h1 className="mt-1 text-3xl font-bold">{report.name}</h1>
-                        <p className="mt-2 text-sm text-muted-foreground">{report.module} | {report.code}</p>
+                        <p className="mt-2 text-sm text-muted-foreground">{report.module} | {report.display_code ?? report.code}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <a
