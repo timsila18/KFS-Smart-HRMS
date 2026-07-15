@@ -6,9 +6,10 @@ use App\Exports\PayrollEmployerRegisterExport;
 use App\Models\PayrollRun;
 use App\Models\Payslip;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PayrollOutputService
 {
@@ -81,6 +82,27 @@ class PayrollOutputService
         $this->record($run, 'payroll_register_by_employer', $path, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
 
+    public function approvalMemos(PayrollRun $run): void
+    {
+        $run->loadMissing(['items.employee', 'period']);
+
+        $memos = $run->items
+            ->groupBy(fn ($item): string => $item->employee?->employer ?: 'KFS')
+            ->map(fn (Collection $items, string $employer): array => $this->memoData($run, $employer, $items))
+            ->filter(fn (array $memo): bool => $memo['staff_count'] > 0)
+            ->values();
+
+        if ($memos->isEmpty()) {
+            return;
+        }
+
+        $path = "payroll/{$run->uuid}/memos/payroll-approval-memos.pdf";
+        $pdf = Pdf::loadView('exports.payroll-approval-memos', ['run' => $run, 'memos' => $memos])->setPaper('a4');
+
+        Storage::disk('public')->put($path, $pdf->output());
+        $this->record($run, 'payroll_approval_memos', $path, 'application/pdf');
+    }
+
     public function statutoryReports(PayrollRun $run): void
     {
         $run->loadMissing('items.payCode', 'items.employee');
@@ -110,5 +132,59 @@ class PayrollOutputService
             ['output_type' => $type, 'file_path' => $path],
             ['file_name' => basename($path), 'mime_type' => $mime, 'metadata' => []]
         );
+    }
+
+    private function memoData(PayrollRun $run, string $employer, Collection $items): array
+    {
+        $staffCount = $items->pluck('employee_id')->unique()->count();
+        $grossPay = (float) $items->where('amount', '>', 0)->sum('amount');
+        $nssf = $staffCount * (float) config('kfs.payroll_memos.employer_nssf_monthly', 1080);
+        $housing = $grossPay * (float) config('kfs.payroll_memos.employer_housing_levy_rate', 0.015);
+        $nita = $staffCount * (float) config('kfs.payroll_memos.employer_nita_monthly', 50);
+        $total = $nssf + $housing + $nita + $grossPay;
+        $periodDate = $run->period?->starts_on ? $run->period->starts_on->copy() : now();
+        $meta = config("kfs.payroll_memos.employers.{$employer}", []);
+
+        return [
+            'employer' => $employer,
+            'from' => config('kfs.payroll_memos.from', 'DEPUTY DIRECTOR, HRM & DEVELOPMENT'),
+            'through' => $meta['through'] ?? null,
+            'ref_no' => ($meta['ref_no'] ?? 'HRA/4/KFS').' ('.$run->id.')',
+            'date' => now()->format('jS F, Y'),
+            'period_subject' => Str::upper($periodDate->format('F Y')),
+            'period_sentence' => $periodDate->format('F, Y'),
+            'subject_suffix' => $meta['subject_suffix'] ?? 'CONTRACT',
+            'description' => $meta['description'] ?? 'contractual employees',
+            'staff_count' => $staffCount,
+            'staff_words' => Str::headline($this->numberToWords($staffCount)),
+            'employer_nssf_formatted' => number_format($nssf, 2),
+            'employer_housing_levy_formatted' => number_format($housing, 2),
+            'employer_nita_formatted' => number_format($nita, 2),
+            'gross_pay_formatted' => number_format($grossPay, 2),
+            'total_formatted' => number_format($total, 2),
+            'prepared_by' => config('kfs.payroll_memos.prepared_by', 'P.L TIALAL'),
+            'initials' => config('kfs.payroll_memos.initials', 'PK/vvm'),
+            'enclosure' => $meta['enclosure'] ?? null,
+        ];
+    }
+
+    private function numberToWords(int $number): string
+    {
+        $ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+        $tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+
+        if ($number < 20) {
+            return $ones[$number] ?: 'zero';
+        }
+
+        if ($number < 100) {
+            return trim($tens[intdiv($number, 10)].' '.$ones[$number % 10]);
+        }
+
+        if ($number < 1000) {
+            return trim($ones[intdiv($number, 100)].' hundred '.($number % 100 ? 'and '.$this->numberToWords($number % 100) : ''));
+        }
+
+        return trim($this->numberToWords(intdiv($number, 1000)).' thousand '.($number % 1000 ? $this->numberToWords($number % 1000) : ''));
     }
 }

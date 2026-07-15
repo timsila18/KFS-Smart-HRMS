@@ -4,6 +4,7 @@ import { CalendarCheck, CircleDollarSign, FileBarChart, KeyRound, LayoutDashboar
 import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
 import { ThemeToggle } from '@/Components/ThemeToggle';
+import { KfsLogo } from '@/Components/KfsLogo';
 import { PageProps } from '@/types';
 
 export default function AppLayout({ children }: PropsWithChildren) {
@@ -60,7 +61,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                     <Link href="/dashboard" className="flex min-w-0 items-center gap-3" aria-label="KFS Smart HRMS dashboard">
                         <div className="flex h-12 w-14 items-center justify-center rounded-md border bg-white p-1 shadow-sm">
-                            <img src="/images/kfs-logo.png" alt="Kenya Forest Service logo" className="max-h-full max-w-full object-contain" />
+                            <KfsLogo className="max-h-full max-w-full object-contain" />
                         </div>
                         <div>
                             <p className="text-sm font-semibold">KFS Smart HRMS</p>

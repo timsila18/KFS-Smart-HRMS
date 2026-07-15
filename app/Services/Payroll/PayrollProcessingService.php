@@ -129,6 +129,7 @@ class PayrollProcessingService
         $this->outputs->payslips($run);
         $this->outputs->p9($run);
         $this->outputs->payrollRegisterByEmployer($run);
+        $this->outputs->approvalMemos($run);
         $this->outputs->bankFile($run);
         $this->outputs->statutoryReports($run);
         $this->activityLogger->record($request, 'payroll.outputs_generated', $run);

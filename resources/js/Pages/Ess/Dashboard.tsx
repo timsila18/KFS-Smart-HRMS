@@ -3,6 +3,7 @@ import { Bell, CalendarDays, ClipboardCheck, FileText, Leaf, MessageSquareText, 
 import AppLayout from '@/Layouts/AppLayout';
 import { Card } from '@/Components/ui/card';
 import { EssNav } from '@/Components/Ess/EssNav';
+import { KfsLogo } from '@/Components/KfsLogo';
 
 type WorkspaceCard = { title: string; href: string; description: string };
 type Props = {
@@ -41,7 +42,7 @@ export default function EssDashboard({ employee, summary, employment, latestPays
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
                                 <div className="flex h-14 w-20 items-center justify-center rounded-md border bg-white p-1 shadow-sm">
-                                    <img src="/images/kfs-logo.png" alt="Kenya Forest Service logo" className="max-h-full max-w-full object-contain" />
+                                    <KfsLogo className="max-h-full max-w-full object-contain" />
                                 </div>
                                 <Link href="/ess/messages" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Search / Jump</Link>
                                 <Link href="/ess/notifications" className="kfs-focus inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-secondary">Notifications</Link>
@@ -60,7 +61,7 @@ export default function EssDashboard({ employee, summary, employment, latestPays
                         <div>
                             <div className="flex items-center gap-3">
                                 <div className="flex h-16 w-20 items-center justify-center rounded-md border bg-white p-1 shadow-sm">
-                                    <img src="/images/kfs-logo.png" alt="Kenya Forest Service logo" className="max-h-full max-w-full object-contain" />
+                                    <KfsLogo className="max-h-full max-w-full object-contain" />
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold uppercase text-primary">Kenya Forest Service</p>

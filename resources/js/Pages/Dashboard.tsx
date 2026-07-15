@@ -2,6 +2,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { Bell, BriefcaseBusiness, CalendarDays, CheckCircle2, CircleDollarSign, Clock, FileBarChart, Leaf, Plane, UserPlus, Users } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import { ChartPanel } from '@/Components/Dashboard/ChartPanel';
+import { KfsLogo } from '@/Components/KfsLogo';
 import { MetricCard } from '@/Components/Dashboard/MetricCard';
 import { Card } from '@/Components/ui/card';
 import { ChangePasswordPanel } from '@/Components/ChangePasswordPanel';
@@ -92,7 +93,7 @@ export default function Dashboard({ dashboard, loginHistory, activityLogs }: Das
                 <section className="overflow-hidden rounded-lg border bg-primary text-primary-foreground shadow-sm">
                     <div className="grid gap-6 p-5 md:grid-cols-[1fr_320px] md:p-6">
                         <div>
-                            <img src="/images/kfs-logo.png" alt="Kenya Forest Service logo" className="mb-4 h-16 w-auto rounded-md bg-white p-2 shadow-sm" />
+                            <KfsLogo className="mb-4 h-16 w-auto rounded-md bg-white p-2 shadow-sm" />
                             <p className="text-sm font-semibold uppercase text-white/75">Kenya Forest Service HRMS</p>
                             <h1 className="mt-2 text-3xl font-semibold">KFS Command Dashboard</h1>
                             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/78">

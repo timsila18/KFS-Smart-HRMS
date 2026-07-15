@@ -1,5 +1,6 @@
 import { PropsWithChildren } from 'react';
 import { ThemeToggle } from '@/Components/ThemeToggle';
+import { KfsLogo } from '@/Components/KfsLogo';
 
 export default function AuthLayout({ children, title, subtitle }: PropsWithChildren<{ title: string; subtitle: string }>) {
     return (
@@ -10,7 +11,7 @@ export default function AuthLayout({ children, title, subtitle }: PropsWithChild
                     <div className="relative flex h-full flex-col justify-between p-12">
                         <div className="flex items-center gap-3">
                             <div className="flex h-16 w-20 items-center justify-center rounded-md bg-white p-2 shadow-sm">
-                                <img src="/images/kfs-logo.png" alt="Kenya Forest Service logo" className="max-h-full max-w-full object-contain" />
+                                <KfsLogo className="max-h-full max-w-full object-contain" />
                             </div>
                             <div>
                                 <p className="text-sm font-semibold uppercase tracking-wide text-white/75">Kenya Forest Service</p>
@@ -47,7 +48,7 @@ export default function AuthLayout({ children, title, subtitle }: PropsWithChild
                     <header className="flex items-center justify-between px-5 py-4 sm:px-8">
                         <div className="flex items-center gap-3 lg:hidden">
                             <div className="flex h-12 w-14 items-center justify-center rounded-md border bg-white p-1 shadow-sm">
-                                <img src="/images/kfs-logo.png" alt="Kenya Forest Service logo" className="max-h-full max-w-full object-contain" />
+                                <KfsLogo className="max-h-full max-w-full object-contain" />
                             </div>
                             <div>
                                 <p className="text-xs font-semibold uppercase text-muted-foreground">KFS Smart HRMS</p>
@@ -62,7 +63,7 @@ export default function AuthLayout({ children, title, subtitle }: PropsWithChild
                     <div className="flex flex-1 items-center justify-center px-5 py-8 sm:px-8">
                         <div className="w-full max-w-md">
                             <div className="mb-8">
-                                <img src="/images/kfs-logo.png" alt="Kenya Forest Service logo" className="mb-4 h-16 w-auto object-contain" />
+                                <KfsLogo className="mb-4 h-16 w-auto object-contain" />
                                 <p className="text-sm font-medium uppercase text-muted-foreground">Kenya Forest Service</p>
                                 <h2 className="mt-2 text-3xl font-semibold">{title}</h2>
                                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{subtitle}</p>
