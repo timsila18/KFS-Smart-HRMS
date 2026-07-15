@@ -6,6 +6,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { FormError } from '@/Components/FormError';
+import { PasswordInput } from '@/Components/PasswordInput';
 
 export default function Login({ status }: { canResetPassword: boolean; status?: string; twoFactorEnabled: boolean }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -37,7 +38,7 @@ export default function Login({ status }: { canResetPassword: boolean; status?: 
                             Forgot password?
                         </Link>
                     </div>
-                    <Input id="password" type="password" value={data.password} autoComplete="current-password" onChange={(e) => setData('password', e.target.value)} />
+                    <PasswordInput id="password" value={data.password} autoComplete="current-password" onChange={(e) => setData('password', e.target.value)} />
                     <FormError message={errors.password} />
                 </div>
 

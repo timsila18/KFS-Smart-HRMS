@@ -2,9 +2,9 @@ import { useForm } from '@inertiajs/react';
 import { KeyRound } from 'lucide-react';
 import type React from 'react';
 import { FormError } from '@/Components/FormError';
+import { PasswordInput } from '@/Components/PasswordInput';
 import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
-import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 
 export function ChangePasswordPanel() {
@@ -37,17 +37,17 @@ export function ChangePasswordPanel() {
             <form onSubmit={submit} className="mt-5 grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                     <Label htmlFor="current_password">Current password</Label>
-                    <Input id="current_password" type="password" value={data.current_password} onChange={(e) => setData('current_password', e.target.value)} />
+                    <PasswordInput id="current_password" value={data.current_password} autoComplete="current-password" onChange={(e) => setData('current_password', e.target.value)} />
                     <FormError message={errors.current_password} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="new_password">New password</Label>
-                    <Input id="new_password" type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} />
+                    <PasswordInput id="new_password" value={data.password} autoComplete="new-password" onChange={(e) => setData('password', e.target.value)} />
                     <FormError message={errors.password} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="new_password_confirmation">Confirm password</Label>
-                    <Input id="new_password_confirmation" type="password" value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)} />
+                    <PasswordInput id="new_password_confirmation" value={data.password_confirmation} autoComplete="new-password" onChange={(e) => setData('password_confirmation', e.target.value)} />
                     <FormError message={errors.password_confirmation} />
                 </div>
                 <div className="md:col-span-3 flex items-center gap-3">

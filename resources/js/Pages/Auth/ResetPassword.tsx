@@ -5,6 +5,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { FormError } from '@/Components/FormError';
+import { PasswordInput } from '@/Components/PasswordInput';
 
 export default function ResetPassword({ token, email }: { token: string; email: string }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -25,12 +26,12 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="password">New password</Label>
-                    <Input id="password" type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} />
+                    <PasswordInput id="password" value={data.password} autoComplete="new-password" onChange={(e) => setData('password', e.target.value)} />
                     <FormError message={errors.password} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="password_confirmation">Confirm password</Label>
-                    <Input id="password_confirmation" type="password" value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)} />
+                    <PasswordInput id="password_confirmation" value={data.password_confirmation} autoComplete="new-password" onChange={(e) => setData('password_confirmation', e.target.value)} />
                     <FormError message={errors.password_confirmation} />
                 </div>
                 <Button type="submit" className="w-full" disabled={processing}>
