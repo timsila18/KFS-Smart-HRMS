@@ -98,7 +98,7 @@ Route::middleware(['auth'])->group(function (): void {
         ->middleware('permission:payroll.view')
         ->group(function (): void {
             Route::get('/', [PayrollProcessingController::class, 'index'])->name('index');
-            Route::post('/open', [PayrollProcessingController::class, 'open'])->middleware('permission:payroll.create')->name('open');
+            Route::post('/open', [PayrollProcessingController::class, 'open'])->middleware('permission:payroll.create|payroll.update')->name('open');
             Route::post('/adjustments/import', [PayrollProcessingController::class, 'importAdjustments'])->middleware('permission:payroll.update')->name('adjustments.import');
             Route::get('/{run:uuid}', [PayrollProcessingController::class, 'show'])->name('show');
             Route::post('/{run:uuid}/calculate', [PayrollProcessingController::class, 'calculate'])->middleware('permission:payroll.update')->name('calculate');

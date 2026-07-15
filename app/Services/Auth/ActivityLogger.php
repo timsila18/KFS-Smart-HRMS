@@ -2,7 +2,6 @@
 
 namespace App\Services\Auth;
 
-use App\Jobs\RecordAuditLog;
 use App\Models\AuditLog;
 use App\Models\User;
 use App\Models\UserLoginHistory;
@@ -72,12 +71,6 @@ class ActivityLogger
             'user_agent' => $request->userAgent(),
         ];
 
-        if (app()->runningUnitTests()) {
-            AuditLog::query()->create($payload);
-
-            return;
-        }
-
-        RecordAuditLog::dispatchAfterResponse($payload);
+        AuditLog::query()->create($payload);
     }
 }

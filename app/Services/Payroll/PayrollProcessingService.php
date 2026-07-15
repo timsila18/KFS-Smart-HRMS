@@ -10,6 +10,7 @@ use App\Services\Auth\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PayrollProcessingService
 {
@@ -23,14 +24,30 @@ class PayrollProcessingService
     public function open(PayrollPeriod $period, PayGroup $payGroup, Request $request): PayrollRun
     {
         return DB::transaction(function () use ($period, $payGroup, $request): PayrollRun {
+            $existingRun = PayrollRun::query()
+                ->where('payroll_period_id', $period->id)
+                ->where('pay_group_id', $payGroup->id)
+                ->whereIn('status', ['draft', 'calculated', 'approved', 'locked'])
+                ->latest('id')
+                ->first();
+
+            if ($existingRun) {
+                $this->activityLogger->record($request, 'payroll.open_existing', $existingRun, [], $existingRun->only(['run_number', 'status']));
+
+                return $existingRun;
+            }
+
             $run = PayrollRun::query()->create([
+                'uuid' => (string) Str::uuid(),
                 'payroll_period_id' => $period->id,
                 'pay_group_id' => $payGroup->id,
-                'run_number' => $period->code.'-'.$payGroup->code.'-'.now()->format('YmdHis'),
+                'run_number' => $period->code.'-'.$payGroup->code.'-'.now()->format('YmdHisv'),
                 'status' => 'draft',
                 'gross_total' => 0,
                 'deduction_total' => 0,
                 'net_total' => 0,
+                'created_by' => $request->user()?->id,
+                'updated_by' => $request->user()?->id,
             ]);
 
             $this->activityLogger->record($request, 'payroll.opened', $run, [], $run->toArray());
