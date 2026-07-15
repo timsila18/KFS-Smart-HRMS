@@ -23,8 +23,10 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/payslips', [EmployeeSelfServiceController::class, 'payslips'])->name('payslips');
         Route::get('/p9', [EmployeeSelfServiceController::class, 'p9'])->name('p9');
         Route::get('/leave', [EmployeeSelfServiceController::class, 'leave'])->name('leave');
+        Route::get('/leave/{leaveRequest:uuid}/form', [EmployeeSelfServiceController::class, 'leaveForm'])->name('leave.form');
         Route::get('/training', [EmployeeSelfServiceController::class, 'training'])->name('training');
         Route::get('/performance', [EmployeeSelfServiceController::class, 'performance'])->name('performance');
+        Route::get('/performance/{review}/form', [EmployeeSelfServiceController::class, 'performanceForm'])->name('performance.form');
         Route::get('/payroll-history', [EmployeeSelfServiceController::class, 'payrollHistory'])->name('payroll-history');
         Route::get('/contracts', [EmployeeSelfServiceController::class, 'contracts'])->name('contracts');
         Route::get('/documents', [EmployeeSelfServiceController::class, 'documents'])->name('documents');
@@ -119,6 +121,9 @@ Route::middleware(['auth'])->group(function (): void {
             Route::post('/approvals/{approval}/reject', [LeaveApprovalController::class, 'reject'])
                 ->middleware('permission:leave.approve|ess.approve')
                 ->name('approvals.reject');
+            Route::get('/approvals/{approval}/form', [LeaveApprovalController::class, 'form'])
+                ->middleware('permission:leave.approve|ess.approve')
+                ->name('approvals.form');
         });
 
     Route::prefix('reports')

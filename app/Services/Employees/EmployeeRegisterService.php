@@ -459,12 +459,20 @@ class EmployeeRegisterService
 
     private function generatedEssEmail(Employee $employee): string
     {
-        $localPart = Str::of($employee->employee_number)
+        $localPart = Str::of($employee->first_name.'.'.$employee->last_name)
             ->lower()
             ->replaceMatches('/[^a-z0-9]+/', '.')
             ->trim('.')
             ->toString();
 
-        return "{$localPart}@".config('kfs-auth.ess_email_domain', 'kfs.go.ke');
+        if (blank($localPart)) {
+            $localPart = Str::of($employee->employee_number)
+                ->lower()
+                ->replaceMatches('/[^a-z0-9]+/', '.')
+                ->trim('.')
+                ->toString();
+        }
+
+        return "{$localPart}@".config('kfs-auth.ess_email_domain', 'kenyaforestservice.org');
     }
 }

@@ -117,7 +117,16 @@ export default function EmployeeForm({
 
     const { data, setData, post, put, processing, errors } = useForm<EmployeePayload>(initial);
 
-    const updateProfile = (key: string, value: string) => setData('profile', { ...data.profile, [key]: value });
+    const updateProfile = (key: string, value: string) => {
+        const profile = { ...data.profile, [key]: value };
+        const next: EmployeePayload = { ...data, profile };
+
+        if (mode === 'create' && ['first_name', 'last_name'].includes(key)) {
+            next.ess = { ...data.ess, email: officialEssEmail(profile.first_name, profile.last_name) };
+        }
+
+        setData(next);
+    };
     const updateEss = (key: string, value: string) => setData('ess', { ...data.ess, [key]: value });
     const updateRow = (section: keyof EmployeePayload, index: number, key: string, value: any) => {
         const rows = [...(data[section] as any[])];
@@ -279,4 +288,13 @@ function Repeater({ title, rows, onAdd, render }: { title: string; rows: any[]; 
             </div>
         </Card>
     );
+}
+
+function officialEssEmail(firstName: string, lastName: string) {
+    const localPart = [firstName, lastName]
+        .map((value) => String(value ?? '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, ''))
+        .filter(Boolean)
+        .join('.');
+
+    return localPart ? `${localPart}@kenyaforestservice.org` : '';
 }

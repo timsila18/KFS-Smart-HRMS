@@ -243,7 +243,7 @@ class EmployeeController extends Controller
             'STN-WESTERN-KAKAMEGA-KAKAMEGA',
             'Human Resource Management',
             'Human Resource Manager',
-            'jane.mwangi@kfs.go.ke',
+            'jane.mwangi@kenyaforestservice.org',
             config('kfs-auth.default_ess_password', 'KfsEss@2026'),
             'National Bank',
             '',

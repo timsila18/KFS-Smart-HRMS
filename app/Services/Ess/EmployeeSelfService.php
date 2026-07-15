@@ -128,9 +128,19 @@ class EmployeeSelfService
             ->all();
     }
 
-    public function leave(User $user): array { return $this->tableRows($user, 'leave_requests', ['uuid','start_date','end_date','requested_days','status','reason']); }
+    public function leave(User $user): array
+    {
+        return collect($this->tableRows($user, 'leave_requests', ['uuid','start_date','end_date','requested_days','status','reason']))
+            ->map(fn ($row): array => array_merge((array) $row, ['url' => route('ess.leave.form', ['leaveRequest' => $row->uuid])]))
+            ->all();
+    }
     public function training(User $user): array { return $this->tableRows($user, 'training_enrollments', ['uuid','status','score','completed_on']); }
-    public function performance(User $user): array { return $this->tableRows($user, 'appraisal_reviews', ['uuid','review_stage','status','overall_score']); }
+    public function performance(User $user): array
+    {
+        return collect($this->tableRows($user, 'appraisal_reviews', ['uuid','review_stage','status','overall_score']))
+            ->map(fn ($row): array => array_merge((array) $row, ['url' => route('ess.performance.form', ['review' => $row->uuid])]))
+            ->all();
+    }
     public function payrollHistory(User $user): array { return $this->payslips($user); }
     public function contracts(User $user): array { $employee = $this->employeeFor($user); return $employee?->contracts?->values()->all() ?? []; }
     public function documents(User $user): array { $employee = $this->employeeFor($user); return $employee?->documents?->values()->all() ?? []; }
@@ -463,8 +473,8 @@ class EmployeeSelfService
 
     private function singleApproverId(): int
     {
-        $approver = User::role('hr-manager')->where('status', 'active')->first()
-            ?? User::role('hr-admin')->where('status', 'active')->first()
+        $approver = User::role('hr-admin')->where('status', 'active')->first()
+            ?? User::role('hr-manager')->where('status', 'active')->first()
             ?? User::query()->where('status', 'active')->first();
 
         abort_unless($approver, 422, 'No leave approver has been configured.');

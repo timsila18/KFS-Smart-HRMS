@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Ess;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ess\StoreEssRequest;
+use App\Models\LeaveRequest;
 use App\Services\Ess\EmployeeSelfService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -41,6 +44,18 @@ class EmployeeSelfServiceController extends Controller
         return Inertia::render('Ess/ListPage', ['title' => 'Leave', 'description' => 'Your leave requests and balances summary.', 'rows' => $this->ess->leave($request->user())]);
     }
 
+    public function leaveForm(Request $request, LeaveRequest $leaveRequest)
+    {
+        $employee = $this->ess->employeeFor($request->user());
+        abort_unless($employee && $leaveRequest->employee_id === $employee->id, 403);
+
+        $leaveRequest->loadMissing(['employee.department', 'employee.station', 'employee.jobPosition', 'leaveType', 'approvals.approver']);
+
+        return Pdf::loadView('exports.leave-application-form', ['leave' => $leaveRequest])
+            ->setPaper('a4')
+            ->download("kfs-leave-application-{$leaveRequest->uuid}.pdf");
+    }
+
     public function training(Request $request): Response
     {
         return Inertia::render('Ess/ListPage', ['title' => 'Training', 'description' => 'Your training nominations, attendance, and scores.', 'rows' => $this->ess->training($request->user())]);
@@ -49,6 +64,36 @@ class EmployeeSelfServiceController extends Controller
     public function performance(Request $request): Response
     {
         return Inertia::render('Ess/ListPage', ['title' => 'Performance', 'description' => 'Your appraisal reviews and scores.', 'rows' => $this->ess->performance($request->user())]);
+    }
+
+    public function performanceForm(Request $request, string $review)
+    {
+        $employee = $this->ess->employeeFor($request->user());
+        abort_unless($employee, 403);
+
+        $appraisal = DB::table('appraisal_reviews')
+            ->leftJoin('appraisal_cycles', 'appraisal_cycles.id', '=', 'appraisal_reviews.appraisal_cycle_id')
+            ->leftJoin('employees as reviewers', 'reviewers.id', '=', 'appraisal_reviews.reviewer_id')
+            ->where('appraisal_reviews.uuid', $review)
+            ->where('appraisal_reviews.employee_id', $employee->id)
+            ->whereNull('appraisal_reviews.deleted_at')
+            ->first([
+                'appraisal_reviews.uuid',
+                'appraisal_reviews.review_stage',
+                'appraisal_reviews.status',
+                'appraisal_reviews.overall_score',
+                'appraisal_cycles.name as cycle_name',
+                'appraisal_cycles.starts_on',
+                'appraisal_cycles.ends_on',
+                DB::raw("concat(reviewers.first_name, ' ', reviewers.last_name) as supervisor_name"),
+            ]);
+
+        abort_unless($appraisal, 404);
+
+        return Pdf::loadView('exports.performance-appraisal-provisional', [
+            'employee' => $employee,
+            'appraisal' => $appraisal,
+        ])->setPaper('a4')->download("kfs-performance-appraisal-{$appraisal->uuid}.pdf");
     }
 
     public function payrollHistory(Request $request): Response

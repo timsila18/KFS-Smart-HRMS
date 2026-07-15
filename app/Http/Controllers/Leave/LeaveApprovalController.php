@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Leave;
 
 use App\Http\Controllers\Controller;
 use App\Models\LeaveApproval;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -51,5 +52,18 @@ class LeaveApprovalController extends Controller
         $approval->leaveRequest()->update(['status' => 'rejected']);
 
         return back()->with('status', 'Leave request rejected.');
+    }
+
+    public function form(Request $request, LeaveApproval $approval)
+    {
+        abort_unless($request->user()?->can('leave.approve') || $request->user()?->can('ess.approve'), 403);
+
+        $leave = $approval->leaveRequest()
+            ->with(['employee.department', 'employee.station', 'employee.jobPosition', 'leaveType', 'approvals.approver'])
+            ->firstOrFail();
+
+        return Pdf::loadView('exports.leave-application-form', ['leave' => $leave])
+            ->setPaper('a4')
+            ->download("kfs-leave-application-{$leave->uuid}.pdf");
     }
 }

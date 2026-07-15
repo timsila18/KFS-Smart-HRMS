@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, FileText, XCircle } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
@@ -73,16 +73,21 @@ export default function LeaveApprovals({ approvals }: { approvals: Paginated<App
                                                 <span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium">{approval.status}</span>
                                             </td>
                                             <td className="px-4 py-3">
-                                                {approval.status === 'pending' && (
-                                                    <div className="flex justify-end gap-2">
+                                                <div className="flex justify-end gap-2">
+                                                    <a href={`/leave/approvals/${approval.id}/form`} className="inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium hover:bg-secondary">
+                                                        <FileText className="h-4 w-4" /> Form
+                                                    </a>
+                                                    {approval.status === 'pending' && (
+                                                        <>
                                                         <Button type="button" onClick={() => act(approval, 'approve')}>
                                                             <CheckCircle2 className="h-4 w-4" /> Approve
                                                         </Button>
                                                         <Button type="button" variant="danger" onClick={() => act(approval, 'reject')}>
                                                             <XCircle className="h-4 w-4" /> Reject
                                                         </Button>
-                                                    </div>
-                                                )}
+                                                        </>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
