@@ -1,5 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import type React from 'react';
+import { Download } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
@@ -81,13 +82,38 @@ export default function EssRequests({ rows }: { rows: any[] }) {
                             )}
                         </form>
                     </Card>
-                    <EssList rows={rows} />
+                    <EssRequestHistory rows={rows} />
                 </div>
             </div>
         </AppLayout>
     );
 }
 
-function EssList({ rows }: { rows: any[] }) {
-    return <Card className="p-5"><div className="space-y-3">{rows.map((row) => <div key={row.uuid} className="rounded-md border p-3 text-sm"><p className="font-medium">{row.request_type}</p><p className="text-muted-foreground">{row.status} · {row.remarks}</p></div>)}{rows.length === 0 && <p className="text-sm text-muted-foreground">No requests submitted.</p>}</div></Card>;
+function EssRequestHistory({ rows }: { rows: any[] }) {
+    return (
+        <Card className="p-5">
+            <h2 className="font-semibold">Request History</h2>
+            <div className="mt-4 space-y-3">
+                {rows.map((row) => (
+                    <div key={row.uuid} className="flex flex-col justify-between gap-3 rounded-md border p-3 text-sm md:flex-row md:items-center">
+                        <div>
+                            <p className="font-medium">{label(row.request_type)}</p>
+                            <p className="text-muted-foreground">{row.status} {row.remarks ? `- ${row.remarks}` : ''}</p>
+                        </div>
+                        {row.url && (
+                            <a href={String(row.url)} className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">
+                                <Download className="h-3.5 w-3.5" />
+                                Download leave form
+                            </a>
+                        )}
+                    </div>
+                ))}
+                {rows.length === 0 && <p className="text-sm text-muted-foreground">No requests submitted.</p>}
+            </div>
+        </Card>
+    );
+}
+
+function label(value: string) {
+    return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

@@ -131,14 +131,14 @@ class EmployeeSelfService
     public function leave(User $user): array
     {
         return collect($this->tableRows($user, 'leave_requests', ['uuid','start_date','end_date','requested_days','status','reason']))
-            ->map(fn ($row): array => array_merge((array) $row, ['url' => route('ess.leave.form', ['leaveRequest' => $row->uuid])]))
+            ->map(fn ($row): array => array_merge((array) $row, ['url' => "/ess/leave/{$row->uuid}/form"]))
             ->all();
     }
     public function training(User $user): array { return $this->tableRows($user, 'training_enrollments', ['uuid','status','score','completed_on']); }
     public function performance(User $user): array
     {
         return collect($this->tableRows($user, 'appraisal_reviews', ['uuid','review_stage','status','overall_score']))
-            ->map(fn ($row): array => array_merge((array) $row, ['url' => route('ess.performance.form', ['review' => $row->uuid])]))
+            ->map(fn ($row): array => array_merge((array) $row, ['url' => "/ess/performance/{$row->uuid}/form"]))
             ->all();
     }
     public function payrollHistory(User $user): array { return $this->payslips($user); }
@@ -222,7 +222,24 @@ class EmployeeSelfService
             ->map(fn ($row) => ['uuid'=>$row->uuid,'channel'=>$row->channel,'subject'=>$row->subject,'body'=>$row->body,'is_read'=>$row->read_at !== null,'created_at'=>$row->created_at])
             ->all();
     }
-    public function requests(Employee $employee): array { return EssRequest::query()->where('employee_id', $employee->id)->latest()->get()->toArray(); }
+    public function requests(Employee $employee): array
+    {
+        return EssRequest::query()
+            ->where('employee_id', $employee->id)
+            ->latest()
+            ->get()
+            ->map(function (EssRequest $request): array {
+                $row = $request->toArray();
+                $payload = is_array($row['payload'] ?? null) ? $row['payload'] : [];
+
+                if (($row['request_type'] ?? null) === 'leave' && ! empty($payload['leave_request_uuid'])) {
+                    $row['url'] = "/ess/leave/{$payload['leave_request_uuid']}/form";
+                }
+
+                return $row;
+            })
+            ->all();
+    }
 
     public function updateBankDetails(User $user, array $data): EmployeeBankAccount
     {
@@ -265,7 +282,8 @@ class EmployeeSelfService
             $payload = $data['payload'] ?? [];
 
             if ($requestType === 'leave') {
-                $this->createLeaveRequest($employee, $payload, $data['remarks'] ?? null);
+                $leaveRequest = $this->createLeaveRequest($employee, $payload, $data['remarks'] ?? null);
+                $payload['leave_request_uuid'] = $leaveRequest->uuid;
             }
 
             return EssRequest::query()->create([

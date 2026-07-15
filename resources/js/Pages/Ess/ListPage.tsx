@@ -43,6 +43,7 @@ function renderEssSection(title: string, rows: Record<string, any>[]) {
 function LeaveSection({ rows }: { rows: Record<string, any>[] }) {
     const pending = rows.filter((row) => row.status === 'submitted' || row.status === 'pending').length;
     const approvedDays = rows.filter((row) => row.status === 'approved').reduce((total, row) => total + Number(row.requested_days ?? 0), 0);
+    const latestForm = rows.find((row) => row.url);
 
     return (
         <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
@@ -55,6 +56,7 @@ function LeaveSection({ rows }: { rows: Record<string, any>[] }) {
                     <div className="flex gap-2">
                         <Link href="/ess/requests" className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">Apply Leave</Link>
                         <Link href="/ess/requests" className="inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-secondary">Request Off Day</Link>
+                        {latestForm && <a href={String(latestForm.url)} className="inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium hover:bg-secondary"><Download className="h-4 w-4" /> Download Leave Form</a>}
                     </div>
                 </div>
                 <div className="mt-5 grid gap-3 md:grid-cols-3">
@@ -151,10 +153,17 @@ function PoliciesSection({ rows }: { rows: Record<string, any>[] }) {
 }
 
 function PerformanceSection({ rows }: { rows: Record<string, any>[] }) {
+    const latestForm = rows.find((row) => row.url);
+
     return (
         <Card className="p-5">
-            <h2 className="font-semibold">Performance Appraisal</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Track targets, supervisor feedback, scores, and appraisal stages for KFS performance management.</p>
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                <div>
+                    <h2 className="font-semibold">Performance Appraisal</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Track targets, supervisor feedback, scores, and appraisal stages for KFS performance management.</p>
+                </div>
+                {latestForm && <a href={String(latestForm.url)} className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"><Download className="h-4 w-4" /> Download Appraisal Form</a>}
+            </div>
             <div className="mt-5 grid gap-3 md:grid-cols-4">
                 <Metric label="Appraisals" value={rows.length} />
                 <Metric label="Open stages" value={rows.filter((row) => row.status !== 'completed').length} />
@@ -162,7 +171,7 @@ function PerformanceSection({ rows }: { rows: Record<string, any>[] }) {
                 <Metric label="Average score" value={average(rows.map((row) => Number(row.overall_score ?? 0)))} />
             </div>
             <div className="mt-5">
-                <TableSection rows={rows} />
+                <TableSection rows={rows} actions />
             </div>
         </Card>
     );
@@ -272,6 +281,7 @@ function TableSection({ rows, actions = false }: { rows: Record<string, any>[]; 
 
 function ActionLinks({ row }: { row: Record<string, any> }) {
     const url = row.url ?? row.file_path;
+    const label = downloadLabel(row);
 
     if (!url) {
         return null;
@@ -279,9 +289,15 @@ function ActionLinks({ row }: { row: Record<string, any> }) {
 
     return (
         <div className="flex shrink-0 flex-wrap justify-end gap-2">
-            <a href={String(url)} className="inline-flex h-8 items-center gap-1 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground"><Download className="h-3.5 w-3.5" /> Download</a>
+            <a href={String(url)} className="inline-flex h-8 items-center gap-1 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground"><Download className="h-3.5 w-3.5" /> {label}</a>
         </div>
     );
+}
+
+function downloadLabel(row: Record<string, any>) {
+    if ('review_stage' in row || 'overall_score' in row) return 'Download appraisal';
+    if ('requested_days' in row || 'start_date' in row || row.request_type === 'leave') return 'Download leave form';
+    return 'Download';
 }
 
 function Metric({ label, value }: { label: string; value: any }) {
