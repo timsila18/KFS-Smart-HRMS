@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Exports\GenericReportExport;
+use App\Exports\NetToBankReportExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reports\RunReportRequest;
 use App\Models\ReportCatalog;
@@ -75,6 +76,10 @@ class ReportController extends Controller
                 ->header('Content-Disposition', 'attachment; filename="'.$fileName.'.pdf"');
         }
 
+        if ($report->code === 'BANK_SCHEDULE') {
+            return new NetToBankReportExport($fileName.'.xlsx', $dataset['rows'], $this->periodLabel($request->filters()));
+        }
+
         return new GenericReportExport($fileName.'.xlsx', $dataset['columns'], $dataset['rows']);
     }
 
@@ -118,6 +123,21 @@ class ReportController extends Controller
             'quarter' => now()->addMonthsNoOverflow(3)->startOfQuarter(),
             default => null,
         };
+    }
+
+    private function periodLabel(array $filters): ?string
+    {
+        $periodId = $filters['period_id'] ?? null;
+
+        if (! $periodId) {
+            return null;
+        }
+
+        $startsOn = DB::table('payroll_periods')
+            ->where('id', $periodId)
+            ->value('starts_on');
+
+        return $startsOn ? Carbon::parse($startsOn)->format('F, Y') : null;
     }
 
 }

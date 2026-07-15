@@ -2,6 +2,7 @@
 
 namespace App\Services\Payroll;
 
+use App\Exports\NetToBankReportExport;
 use App\Exports\PayrollEmployerRegisterExport;
 use App\Models\PayrollRun;
 use App\Models\Payslip;
@@ -53,28 +54,29 @@ class PayrollOutputService
 
     public function bankFile(PayrollRun $run): void
     {
-        $run->loadMissing('items.employee.bankAccounts');
-        $rows = ["employee_number,employee_name,bank_code,bank_name,branch_code,branch_name,account_number,amount"];
+        $run->loadMissing(['items.employee.bankAccounts', 'period']);
+        $rows = [];
 
         foreach ($run->items->groupBy('employee_id') as $items) {
             $employee = $items->first()->employee;
             $bank = $employee->bankAccounts->firstWhere('is_primary', true);
             $amount = (float) $items->sum('amount');
-            $rows[] = implode(',', [
-                $employee->employee_number,
-                Str::of($employee->full_name)->replace(',', ' '),
-                $bank?->bank_code ?? '',
-                Str::of($bank?->bank_name ?? '')->replace(',', ' '),
-                $bank?->branch_code ?? '',
-                Str::of($bank?->branch_name ?? '')->replace(',', ' '),
-                $bank?->account_number ?? '',
-                number_format($amount, 2, '.', ''),
-            ]);
+
+            $rows[] = [
+                'employee_number' => $employee->employee_number,
+                'employee' => (string) Str::of($employee->full_name)->squish(),
+                'bank_code' => $bank?->bank_code ?? '',
+                'bank_name' => (string) Str::of($bank?->bank_name ?? '')->squish(),
+                'branch_code' => $bank?->branch_code ?? '',
+                'branch_name' => (string) Str::of($bank?->branch_name ?? '')->squish(),
+                'account_number' => $bank?->account_number ?? '',
+                'net_pay' => $amount,
+            ];
         }
 
-        $path = "payroll/{$run->uuid}/bank/bank-file.csv";
-        Storage::disk('public')->put($path, implode("\n", $rows));
-        $this->record($run, 'bank_file', $path, 'text/csv');
+        $path = "payroll/{$run->uuid}/bank/net-to-bank.xlsx";
+        Excel::store(new NetToBankReportExport(basename($path), $rows, $this->periodLabel($run)), $path, 'public');
+        $this->record($run, 'bank_file', $path, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
 
     public function payrollRegisterByEmployer(PayrollRun $run): void
@@ -135,6 +137,11 @@ class PayrollOutputService
             ['output_type' => $type, 'file_path' => $path],
             ['file_name' => basename($path), 'mime_type' => $mime, 'metadata' => []]
         );
+    }
+
+    private function periodLabel(PayrollRun $run): string
+    {
+        return $run->period?->starts_on ? $run->period->starts_on->format('F, Y') : now()->format('F, Y');
     }
 
     private function memoData(PayrollRun $run, string $employer, Collection $items): array
